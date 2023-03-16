@@ -19,6 +19,9 @@ return new class extends Migration {
             $table->timestamp("date_needed")->nullable();
             $table->timestamp("date_approved")->nullable();
 
+            $table->string("cip_no")->nullable();
+            $table->string("helpdesk_no")->nullable();
+
             $table->integer("company_id");
             $table->string("company_code");
             $table->string("company_name");
@@ -34,6 +37,7 @@ return new class extends Migration {
             $table->integer("customer_id");
             $table->string("customer_code");
             $table->string("customer_name");
+            $table->string("rush")->nullable();
 
             $table->unsignedInteger("requestor_id")->index();
             $table

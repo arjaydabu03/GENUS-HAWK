@@ -61,7 +61,6 @@ class GlobalFunction
             Status::SUCESS_STATUS
         );
     }
-
     public static function display_response($message, $result = [])
     {
         return response()->json(
@@ -125,6 +124,16 @@ class GlobalFunction
                 "result" => $result,
             ],
             Status::DENIED_STATUS
+        );
+    }
+    public static function cutoff($message, $result = [])
+    {
+        return response()->json(
+            [
+                "message" => $message,
+                "result" => $result,
+            ],
+            Status::CUT_OFF_STATUS
         );
     }
 }

@@ -4,7 +4,8 @@ namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-
+use Carbon\carbon;
+use App\Models\Cutoff;
 class StoreRequest extends FormRequest
 {
     /**
@@ -40,6 +41,7 @@ class StoreRequest extends FormRequest
                     ->whereNull("deleted_at"),
             ],
             "date_needed" => "required",
+            "rush" => "nullable",
 
             "company.id" => "required",
             "company.code" => "required",
@@ -60,7 +62,7 @@ class StoreRequest extends FormRequest
             "customer.code" => "required",
             "customer.name" => "required",
 
-            "order.*.material.id" => ["required","distinct"],
+            "order.*.material.id" => ["required", "distinct"],
             "order.*.material.code" => [
                 "required",
                 "exists:materials,code,deleted_at,NULL",
@@ -73,6 +75,9 @@ class StoreRequest extends FormRequest
                         ->where("order_no", $order_no)
                         ->where("customer_code", $customer_code)
                         ->where("requestor_id", $requestor_id)
+                        ->where(function ($query) {
+                            return $query->whereDate("created_at", date("Y-m-d"));
+                        })
                         ->whereNull("deleted_at");
                 }),
             ],
@@ -111,6 +116,21 @@ class StoreRequest extends FormRequest
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->route()->id);
             // $validator->errors()->add("custom", "STOP!");
+            $time_now = Carbon::now()
+                ->timezone("Asia/Manila")
+                ->format("H:i");
+            $date_today = Carbon::now()
+                ->timeZone("Asia/Manila")
+                ->format("Y-m-d");
+            $cutoff = Cutoff::get()->value("time");
+
+            $is_rush =
+                date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
+                $time_now > $cutoff;
+
+            if ($is_rush) {
+                $validator->errors()->add("rush", "The rush field is required.");
+            }
         });
     }
 }

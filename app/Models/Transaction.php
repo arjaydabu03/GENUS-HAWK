@@ -15,6 +15,8 @@ class Transaction extends Model
 
     protected $fillable = [
         "order_no",
+        "cip_no",
+        "helpdesk_no",
         "date_needed",
         "date_approved",
         "reason",
@@ -40,6 +42,7 @@ class Transaction extends Model
 
         "approver_id",
         "approver_name",
+        "rush",
     ];
 
     public function orders()

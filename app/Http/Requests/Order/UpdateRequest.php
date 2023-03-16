@@ -4,7 +4,7 @@ namespace App\Http\Requests\Order;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-
+use Carbon\carbon;
 class UpdateRequest extends FormRequest
 {
     /**
@@ -38,6 +38,9 @@ class UpdateRequest extends FormRequest
                     ->when($requestor_role == 3, function ($query) use ($requestor_id) {
                         return $query->where("requestor_id", $requestor_id);
                     })
+                    // ->when($requestor_role == 2, function ($query) use ($requestor_id) {
+                    //     return $query->where("requestor_id", $requestor_id);
+                    // })
                     ->where(function ($query) {
                         return $query->whereDate("date_ordered", date("Y-m-d"));
                     })
@@ -47,6 +50,7 @@ class UpdateRequest extends FormRequest
             "customer.id" => "required",
             "customer.code" => "required",
             "customer.name" => "required",
+            "rush" => "nullable",
 
             "order.*.id" => "nullable",
 
@@ -63,6 +67,9 @@ class UpdateRequest extends FormRequest
                         ->where("order_no", $order_no)
                         ->where("customer_code", $customer_code)
                         ->where("requestor_id", $requestor_id)
+                        ->where(function ($query) {
+                            return $query->whereDate("created_at", date("Y-m-d"));
+                        })
                         ->whereNot(function ($query) {
                             return $query->whereIn("id", $this->input("order.*.id"));
                         })
@@ -104,6 +111,16 @@ class UpdateRequest extends FormRequest
             // $validator->errors()->add("custom", $this->input("order.*.material.id"));
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->input("order.*.id"));
+
+            $time_now = Carbon::now()->timezone('Asia/Manila')->format('H:i');
+            $date_today =Carbon::now()->timeZone('Asia/Manila')->format('Y-m-d');
+            $cutoff =  Cutoff::get()->value('time');
+
+            $is_rush = (date('Y-m-d',strtotime($this->input('date_needed')))  == $date_today) && ($time_now > $cutoff);
+
+            if($is_rush){
+                $validator->errors()->add("rush", "The rush field is required.");
+            }
         });
     }
 }

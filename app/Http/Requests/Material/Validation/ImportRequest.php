@@ -15,6 +15,7 @@ class ImportRequest extends FormRequest
     {
         return true;
     }
+    // protected $stopOnFirstFailure = true;
 
     /**
      * Get the validation rules that apply to the request.
@@ -24,36 +25,29 @@ class ImportRequest extends FormRequest
     public function rules()
     {
         return [
-            '*.code'=> [
-                'required',
-                'string',
-                'unique:materials,code',
-                'distinct'
-            ],
-            '*.name'=>'required|string',
-            '*category'=>'required|exists:categories,id,deleted_at,NULL',
-            '*uom'=>'required|exists:uom,id,deleted_at,NULL',
-            '*warehouse'=>'required|exists:warehouse,id,deleted_at,NULL'
+            "*.code" => ["required", "string", "unique:materials,code", "distinct"],
+            "*.name" => "required|string",
+            "*.category" => "required|exists:categories,name,deleted_at,NULL",
+            "*.uom" => "required|exists:uom,code,deleted_at,NULL",
+            "*.warehouse" => "required|exists:warehouse,name,deleted_at,NULL",
         ];
     }
 
     public function attributes()
     {
-       return [
-            "code" => "code",
-            "category" => "category",
-            "uom" => "uom",
-            "warehouse" => "warehouse"
-
-       ];
+        return [
+            "*.code" => "code",
+            "*.category" => "category",
+            "*.uom" => "uom",
+            "*.warehouse" => "warehouse",
+        ];
     }
 
     public function messages()
     {
         return [
-          
-            "*.exists"  =>  ":Attribute is not registered.",
-            "*.distinct"  =>  ":Attribute is already been taken.",
+            "*.exists" => ":Attribute is not registered.",
+            ".distinct" => ":Attribute is already been taken.",
         ];
     }
 }

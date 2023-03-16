@@ -3,8 +3,8 @@
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
-
-class LoginResource extends JsonResource
+use App\Http\Resources\TagAccountResource;
+class StoreResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -15,8 +15,8 @@ class LoginResource extends JsonResource
     public function toArray($request)
     {
         return [
-            "id" => $this->id,
-            "mobile_no" => $this->mobile_no,
+            "id"=>$this->id,
+            
             "account" => [
                 "code" => $this->account_code,
                 "name" => $this->account_name,
@@ -36,12 +36,10 @@ class LoginResource extends JsonResource
                 "code" => $this->location_code,
                 "name" => $this->location,
             ],
-            "role" => new RoleResource($this->role),
-            "cut_off" => $this->cut_off,
-            "scope_approval" => $this->scope_approval,
-            "scope_order" => $this->scope_order,
-            "username" => $this->username,
-            "token" => $this->token,
+            "mobile_no" => $this->mobile_no,
+            "updated_at" => $this->updated_at,
+
+            "tag_store" => TagAccountResource::collection($this->tag_store),
         ];
     }
 }

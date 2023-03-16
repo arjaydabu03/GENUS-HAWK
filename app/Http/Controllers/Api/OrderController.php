@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\carbon;
 
 use App\Http\Resources\TransactionResource;
 use App\Http\Resources\OrderResource;
@@ -15,12 +16,17 @@ use App\Models\Order;
 use App\Models\Material;
 use App\Models\Category;
 use App\Models\User;
+use App\Models\Cutoff;
+
+use App\Functions\GlobalFunction;
+use App\Functions\SmsFunction;
 
 use App\Response\Status;
-use App\Functions\GlobalFunction;
 use App\Http\Requests\Order\StoreRequest;
 use App\Http\Requests\Order\UpdateRequest;
 use App\Http\Requests\Order\DisplayRequest;
+use App\Http\Requests\Order\Validation\ReasonRequest;
+use App\Http\Requests\SMS\SMSValidationRequest;
 
 class OrderController extends Controller
 {
@@ -46,10 +52,14 @@ class OrderController extends Controller
                     ->orWhere("customer_code", "like", "%" . $search . "%")
                     ->orWhere("customer_name", "like", "%" . $search . "%");
             })
-            ->when(isset($request->from)&& isset($request->to),function($query) use ($from,$to){
-                $query->where(function($query) use ($from,$to){
-                    $query->whereDate('date_ordered', '>=', $from)
-                   ->whereDate('date_ordered','<=',$to); 
+            ->when(isset($request->from) && isset($request->to), function ($query) use (
+                $from,
+                $to
+            ) {
+                $query->where(function ($query) use ($from, $to) {
+                    $query
+                        ->whereDate("date_ordered", ">=", $from)
+                        ->whereDate("date_ordered", "<=", $to);
                 });
             })
             ->when($status === "pending", function ($query) {
@@ -64,6 +74,7 @@ class OrderController extends Controller
             ->when($status === "all", function ($query) {
                 $query->withTrashed();
             })
+            ->orderByRaw("CASE WHEN rush IS NULL THEN 0 ELSE 1 END DESC")
             ->orderByDesc("updated_at")
             ->paginate($rows);
 
@@ -93,9 +104,27 @@ class OrderController extends Controller
 
     public function store(StoreRequest $request)
     {
+        $time_now = Carbon::now()
+            ->timezone("Asia/Manila")
+            ->format("H:i");
+        $date_today = Carbon::now()
+            ->timeZone("Asia/Manila")
+            ->format("Y-m-d");
+        $cutoff = Cutoff::get()->value("time");
+
+        $is_rush =
+            date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
+
+        if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
+            return GlobalFunction::cutoff(Status::CUT_OFF);
+        }
+
         $transaction = Transaction::create([
             "order_no" => $request["order_no"],
+            "cip_no" => $request["cip_no"],
+            "helpdesk_no" => $request["helpdesk_no"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
+            "rush" => $request["rush"],
 
             "company_id" => $request["company"]["id"],
             "company_code" => $request["company"]["code"],
@@ -146,6 +175,19 @@ class OrderController extends Controller
 
     public function update(UpdateRequest $request, $id)
     {
+        $time_now = Carbon::now()
+            ->timezone("Asia/Manila")
+            ->format("H:i");
+        $date_today = Carbon::now()
+            ->timeZone("Asia/Manila")
+            ->format("Y-m-d");
+        $is_rush =
+            date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
+
+        if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
+            return GlobalFunction::cutoff(Status::CUT_OFF);
+        }
+
         $transaction = Transaction::find($id);
 
         $orders = $request->order;
@@ -157,11 +199,9 @@ class OrderController extends Controller
 
         $transaction->update([
             "order_no" => $request["order_no"],
+            "cip_no" => $request["cip_no"],
+            "helpdesk_no" => $request["helpdesk_no"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
-
-            // "customer_id" => $request["customer"]["id"],
-            // "customer_code" => $request["customer"]["code"],
-            // "customer_name" => $request["customer"]["name"],
         ]);
 
         $newOrders = collect($orders)
@@ -212,14 +252,14 @@ class OrderController extends Controller
     }
 
     // Cancel transaction
-    public function cancelTransaction(Request $request,$id)
+    public function cancelTransaction(ReasonRequest $request, $id)
     {
         $user = Auth()->user();
         $user_scope = User::where("id", $user->id)
             ->with("scope_approval")
             ->first()
             ->scope_approval->pluck("location_id");
-        $reason =$request->reason;
+        $reason = $request->reason;
         $transaction = Transaction::where("id", $id);
 
         $not_found = $transaction->get();
@@ -246,7 +286,7 @@ class OrderController extends Controller
                 "approver_id" => $user->id,
                 "approver_name" => $user->account_name,
                 "date_approved" => date("Y-m-d H:i:s"),
-                'reason'=>$request->reason
+                "reason" => $request->reason,
             ]);
 
         Transaction::withTrashed()
@@ -254,10 +294,10 @@ class OrderController extends Controller
             ->delete();
         Order::where("transaction_id", $id)->delete();
 
-        return GlobalFunction::delete_response(Status::ARCHIVE_STATUS,$result);
+        return GlobalFunction::delete_response(Status::ARCHIVE_STATUS, $result);
     }
-            //cancel order
-    public function cancelOrder($id)
+    //cancel order
+    public function cancelOrder(Request $request, $id)
     {
         $user = Auth()->user();
         $user_scope = User::where("id", $user->id)
@@ -273,15 +313,18 @@ class OrderController extends Controller
         }
 
         $not_allowed = $order
-        ->when($user->role_id == 2, function ($query) use ($user_scope) {
-            return $query->whereIn("customer_code", $user_scope);
-        })
-        ->get();
+            ->when($user->role_id == 2, function ($query) use ($user_scope) {
+                return $query->whereIn("customer_code", $user_scope);
+            })
+            ->get();
         if ($not_allowed->isEmpty()) {
             return GlobalFunction::delete_response(Status::ACCESS_DENIED);
         }
 
-        $check_siblings = Order::where("transaction_id", $order->get()->first()->transaction_id)->get();
+        $check_siblings = Order::where(
+            "transaction_id",
+            $order->get()->first()->transaction_id
+        )->get();
         if ($check_siblings->count() > 1) {
             $order = $order->get()->first();
 
@@ -303,6 +346,35 @@ class OrderController extends Controller
             ->delete();
         Order::where("transaction_id", $order->get()->first()->transaction_id)->delete();
 
-        return GlobalFunction::delete_response(Status::ARCHIVE_STATUS, $order->withTrashed()->get()->first());
+        return GlobalFunction::delete_response(
+            Status::ARCHIVE_STATUS,
+            $order
+                ->withTrashed()
+                ->get()
+                ->first()
+        );
+    }
+
+    public function sms_order(Request $request)
+    {
+        $requestor_no = current($request->results)["from"];
+        $content = current($request->results)["cleanText"];
+
+        $header = current(preg_split("/\\r\\n|\\r|\\n/", $content));
+        $validate_header = SmsFunction::validate_header($header, $requestor_no);
+
+        if (!empty($validate_header)) {
+            return SmsFunction::send($requestor_no, $validate_header);
+        }
+
+        $body = explode("#", $content)[1];
+        $validate_body = SmsFunction::validate_body($header, $body, $requestor_no);
+
+        if (!empty($validate_body)) {
+            return SmsFunction::send($requestor_no, $validate_body);
+        }
+
+        return SmsFunction::save_sms_order($header, $body, $requestor_no);
+        //    explode('',$header) ;
     }
 }

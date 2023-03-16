@@ -16,93 +16,97 @@ use App\Http\Requests\Warehouse\Validation\CodeRequest;
 
 class WarehouseController extends Controller
 {
-    public function index(DisplayRequest $request){
+    public function index(DisplayRequest $request)
+    {
+        $status = $request->status;
+        $search = $request->search;
+        $paginate = isset($request->paginate) ? $request->paginate : 1;
 
-        $status=$request->status;
-        $search=$request->search;
-        $paginate=isset($request->paginate) ? $request->paginate : 1;
-        
-        $warehouse = Warehouse::when($status === 'inactive',function($query){
-          $query->onlyTrashed();
-      })
-         ->when($search,function($query) use($search){
-            $query->where('code','like','%'.$search.'%')
-            ->orWhere('name','like','%'.$search.'%');
-      });
+        $warehouse = Warehouse::when($status === "inactive", function ($query) {
+            $query->onlyTrashed();
+        })->when($search, function ($query) use ($search) {
+            $query
+                ->where("code", "like", "%" . $search . "%")
+                ->orWhere("name", "like", "%" . $search . "%");
+        });
 
-      $warehouse=$paginate?$warehouse->orderByDesc('updated_at')
-      ->paginate($request->rows):$warehouse->orderByDesc('updated_at')->get();
+        $warehouse = $paginate
+            ? $warehouse->orderByDesc("updated_at")->paginate($request->rows)
+            : $warehouse->orderByDesc("updated_at")->get();
 
         $is_empty = $warehouse->isEmpty();
-        
-        if($is_empty) return GlobalFunction::not_found(Status::NOT_FOUND);
 
-        return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY,$warehouse);
-    }
-
-    public function show($id){
-
-      $warehouse = Warehouse::where('id',$id)->get();
-
-        if($warehouse->isEmpty()){
-          return GlobalFunction::not_found(Status::NOT_FOUND);
-        }
-          return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY,$warehouse->first());
-    }
-
-    public function store(StoreRequest $request){
-
-      $warehouse = Warehouse:: create([
-
-            'code'=> $request['code'],
-            'name'=> $request['name']
-      ]);
-          return GlobalFunction::save(Status::WAREHOUSE_SAVE,$warehouse);
-    }             
-
-    public function update(StoreRequest $request, $id){
-      
-      $warehouse = Warehouse::find($id);
-
-      $not_found = Warehouse::where('id',$id)->get();
-
-        if($not_found->isEmpty()){
+        if ($is_empty) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
-            }
-         $warehouse->update([
-        'code'=>$request['code'],
-        'name'=>$request['name']
-       ]);
+        }
 
-        return GlobalFunction::update_response(Status::WAREHOUSE_UPDATE,$warehouse);
+        return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY, $warehouse);
     }
 
-    public function destroy($id){
+    public function show($id)
+    {
+        $warehouse = Warehouse::where("id", $id)->get();
 
-      $warehouse = Warehouse::where('id',$id)->withTrashed()->get();
+        if ($warehouse->isEmpty()) {
+            return GlobalFunction::not_found(Status::NOT_FOUND);
+        }
+        return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY, $warehouse->first());
+    }
 
-        if($warehouse->isEmpty()){
-          return GlobalFunction::not_found(Status::NOT_FOUND);
-      }
+    public function store(StoreRequest $request)
+    {
+        $warehouse = Warehouse::create([
+            "code" => $request["code"],
+            "name" => $request["name"],
+        ]);
+        return GlobalFunction::save(Status::WAREHOUSE_SAVE, $warehouse);
+    }
+
+    public function update(StoreRequest $request, $id)
+    {
+        $warehouse = Warehouse::find($id);
+
+        $not_found = Warehouse::where("id", $id)->get();
+
+        if ($not_found->isEmpty()) {
+            return GlobalFunction::not_found(Status::NOT_FOUND);
+        }
+        $warehouse->update([
+            "code" => $request["code"],
+            "name" => $request["name"],
+        ]);
+
+        return GlobalFunction::update_response(Status::WAREHOUSE_UPDATE, $warehouse);
+    }
+
+    public function destroy($id)
+    {
+        $warehouse = Warehouse::where("id", $id)
+            ->withTrashed()
+            ->get();
+
+        if ($warehouse->isEmpty()) {
+            return GlobalFunction::not_found(Status::NOT_FOUND);
+        }
 
         $warehouse = Warehouse::withTrashed()->find($id);
         $is_active = Warehouse::withTrashed()
-              ->where('id', $id)
-              ->first();
-        if(!$is_active){
-          return $is_active;
-        }else if(!$is_active->deleted_at){
+            ->where("id", $id)
+            ->first();
+        if (!$is_active) {
+            return $is_active;
+        } elseif (!$is_active->deleted_at) {
             $warehouse->delete();
             $message = Status::ARCHIVE_STATUS;
-        }else {
+        } else {
             $warehouse->restore();
             $message = Status::RESTORE_STATUS;
         }
-       return GlobalFunction::delete_response($message,$warehouse);
+        return GlobalFunction::delete_response($message, $warehouse);
     }
 
-    public function code_validate(CodeRequest $request){
-        
-      return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
-   }
+    public function code_validate(CodeRequest $request)
+    {
+        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+    }
 }

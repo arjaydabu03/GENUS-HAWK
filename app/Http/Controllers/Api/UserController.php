@@ -18,6 +18,7 @@ use App\Models\TagAccount;
 use App\Models\TagAccountOrder;
 use App\Models\Location;
 use App\Models\Role;
+use App\Models\Cutoff;
 
 use App\Http\Resources\UserResource;
 use App\Http\Resources\LoginResource;
@@ -44,7 +45,7 @@ class UserController extends Controller
             ->when($status === "inactive", function ($query) {
                 $query->onlyTrashed();
             })
-            ->when($search, function ($query) use ($search) {
+            ->where(function ($query) use ($search) {
                 $query
                     ->where("account_code", "like", "%" . $search . "%")
                     ->orWhere("account_name", "like", "%" . $search . "%")
@@ -58,7 +59,7 @@ class UserController extends Controller
                     ->orWhere("username", "like", "%" . $search . "%")
                     ->orWhere("role_id", "like", "%" . $search . "%");
             })
-            ->orderByDesc("created_at")
+            ->orderByDesc("updated_at")
             ->paginate($rows);
 
         $is_empty = $users->isEmpty();
@@ -137,6 +138,8 @@ class UserController extends Controller
 
     public function login(LoginRequest $request)
     {
+        $cut_off = Cutoff::get();
+
         $user = User::where("username", $request->username)
             ->with("scope_approval", "scope_order")
             ->first();
@@ -149,6 +152,7 @@ class UserController extends Controller
         }
         $token = $user->createToken("PersonalAccessToken")->plainTextToken;
         $user["token"] = $token;
+        $user["cut_off"] = $cut_off;
         $user = new LoginResource($user);
 
         $cookie = cookie("authcookie", $token);
@@ -308,10 +312,14 @@ class UserController extends Controller
         $id = Auth::id();
         $user = User::find($id);
 
+        if ($user->username == $request->password) {
+            throw ValidationException::withMessages([
+                "password" => ["Please change your password."],
+            ]);
+        }
         $user->update([
             "password" => Hash::make($request["password"]),
         ]);
-
         return GlobalFunction::update_response(Status::CHANGE_PASSWORD);
     }
 

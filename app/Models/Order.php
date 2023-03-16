@@ -38,6 +38,10 @@ class Order extends Model
 
     public function transaction()
     {
+        return $this->belongsTo(Transaction::class);
+    }
+    public function time()
+    {
         return $this->belongsTo(Order::class);
     }
 }
