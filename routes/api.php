@@ -57,6 +57,7 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::get("transaction/notification", [OrderController::class, "count"]);
 
     Route::apiResource("approval", ApproverController::class);
+    Route::patch("order/restore/{id}", [ApproverController::class, "restore"]);
     Route::put("order/approve/{id}", [ApproverController::class, "update"]);
     Route::get("approver_count", [ApproverController::class, "approver_count"]);
 

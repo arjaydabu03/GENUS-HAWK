@@ -110,14 +110,14 @@ class OrderController extends Controller
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
             ->format("Y-m-d");
-        $cutoff = Cutoff::get()->value("time");
+        $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
 
-        $is_rush =
-            date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
+        // $is_rush =
+        //     date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
 
-        if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
-            return GlobalFunction::cutoff(Status::CUT_OFF);
-        }
+        // if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
+        //     return GlobalFunction::cutoff(Status::CUT_OFF);
+        // }
 
         $transaction = Transaction::create([
             "order_no" => $request["order_no"],

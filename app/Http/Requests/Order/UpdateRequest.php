@@ -112,13 +112,19 @@ class UpdateRequest extends FormRequest
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->input("order.*.id"));
 
-            $time_now = Carbon::now()->timezone('Asia/Manila')->format('H:i');
-            $date_today =Carbon::now()->timeZone('Asia/Manila')->format('Y-m-d');
-            $cutoff =  Cutoff::get()->value('time');
+            $time_now = Carbon::now()
+                ->timezone("Asia/Manila")
+                ->format("H:i");
+            $date_today = Carbon::now()
+                ->timeZone("Asia/Manila")
+                ->format("Y-m-d");
+            $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
 
-            $is_rush = (date('Y-m-d',strtotime($this->input('date_needed')))  == $date_today) && ($time_now > $cutoff);
+            $is_rush =
+                date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
+                $time_now > $cutoff;
 
-            if($is_rush){
+            if ($is_rush) {
                 $validator->errors()->add("rush", "The rush field is required.");
             }
         });

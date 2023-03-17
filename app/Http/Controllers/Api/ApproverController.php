@@ -36,8 +36,6 @@ class ApproverController extends Controller
             ->first()
             ->scope_approval->pluck("location_id");
 
-        //  Transaction::where('location_id',$user_scope)->get()->pluck('location_id');
-
         $order = Transaction::with("orders")
             ->where(function ($query) use ($user_scope) {
                 $query->where("location_id", $user_scope)->whereNot("requestor_id", Auth::id());
@@ -116,6 +114,37 @@ class ApproverController extends Controller
                 "approver_id" => $user->id,
                 "approver_name" => $user->account_name,
                 "date_approved" => date("Y-m-d H:i:s"),
+            ]);
+
+        return GlobalFunction::save(Status::TRANSACTION_APPROVE, $order);
+    }
+    public function restore(Request $request, $id)
+    {
+        $user = Auth()->user();
+        $user_scope = User::where("id", $user->id)
+            ->with("scope_approval")
+            ->first()
+            ->scope_approval->pluck("location_id");
+
+        $transaction = Transaction::where("id", $id);
+
+        $not_found = $transaction->get();
+        if ($not_found->isEmpty()) {
+            return GlobalFunction::not_found(Status::NOT_FOUND);
+        }
+
+        $not_allowed = $transaction->whereIn("location_id", $user_scope)->get();
+        if ($not_allowed->isEmpty()) {
+            return GlobalFunction::denied(Status::ACCESS_DENIED);
+        }
+
+        $order = $transaction
+            ->get()
+            ->first()
+            ->update([
+                "approver_id" => null,
+                "approver_name" => null,
+                "date_approved" => null,
             ]);
 
         return GlobalFunction::save(Status::TRANSACTION_APPROVE, $order);

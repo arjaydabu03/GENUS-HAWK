@@ -14,6 +14,8 @@ use App\Models\Transaction;
 use App\Models\UOM;
 use App\Models\Order;
 
+use App\Functions\SendSMS;
+
 class SmsFunction
 {
     #-----------------------------------------------------------------
@@ -571,12 +573,7 @@ class SmsFunction
 
     public static function send($requestor_no, $type)
     {
-        $response = "Fresh morning! error encountered\n" . $type;
-        if ($type === "success") {
-            $response = "Fresh Morning\nAll orders succesfully sent!";
-        }
-
-        return $response;
+        return SendSMS::send($type, $requestor_no);
     }
 
     public static function save_sms_order($header, $body, $requestor_no)

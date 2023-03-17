@@ -7,7 +7,6 @@ use Illuminate\Http\Request;
 
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\TransactionResource;
-use App\Http\Resources\CountResource;
 
 use App\Models\Order;
 use App\Models\Transaction;

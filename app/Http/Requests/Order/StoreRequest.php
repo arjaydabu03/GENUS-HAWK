@@ -122,13 +122,15 @@ class StoreRequest extends FormRequest
             $date_today = Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d");
-            $cutoff = Cutoff::get()->value("time");
+            $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
 
             $is_rush =
                 date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
                 $time_now > $cutoff;
 
-            if ($is_rush) {
+            $with_rush_remarks = !empty($this->input("rush"));
+
+            if ($is_rush && !$with_rush_remarks) {
                 $validator->errors()->add("rush", "The rush field is required.");
             }
         });
