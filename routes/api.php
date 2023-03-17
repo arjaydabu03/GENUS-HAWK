@@ -34,51 +34,51 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::post("validate_mobile", [UserController::class, "validate_mobile"]);
     Route::post("validate_name", [UserController::class, "validate_name"]);
     Route::put("user/reset/{id}", [UserController::class, "reset_password"]);
-   
+
     Route::put("user/old_password/{id}", [UserController::class, "old_password"]);
     Route::put("user/change_password/", [UserController::class, "change_password"]);
     Route::put("user/{id}", [UserController::class, "update"]);
     Route::apiResource("user", UserController::class);
-    
+
+    Route::patch("archive/{id}", [StoreController::class, "destroy"]);
     Route::apiResource("user_store", StoreController::class);
-    
+
     Route::patch("category/{id}", [CategoryController::class, "destroy"]);
     Route::apiResource("category", CategoryController::class);
-    
+
     Route::patch("material/{id}", [MaterialController::class, "destroy"]);
     Route::apiResource("material", MaterialController::class);
     Route::post("validate_code", [MaterialController::class, "validate_code"]);
-    Route::post("import", [MaterialController::class, "import_material"]);  
-    
+    Route::post("import", [MaterialController::class, "import_material"]);
+
     Route::apiResource("order", OrderController::class);
     Route::patch("order/cancel/{id}", [OrderController::class, "cancelOrder"]);
     Route::patch("transaction/cancel/{id}", [OrderController::class, "cancelTransaction"]);
     Route::get("transaction/notification", [OrderController::class, "count"]);
-    
+
     Route::apiResource("approval", ApproverController::class);
-    Route::put("order/approve/{id}", [ApproverController::class,"update"]);
-    Route::get("approver_count", [ApproverController::class,"approver_count"]);
-    
+    Route::put("order/approve/{id}", [ApproverController::class, "update"]);
+    Route::get("approver_count", [ApproverController::class, "approver_count"]);
+
     Route::post("uom/validate", [UOMController::class, "code_validate"]);
     Route::patch("uom/{id}", [UOMController::class, "destroy"]);
     Route::apiResource("uom", UOMController::class);
-    
+
     Route::post("warehouse/validate", [WarehouseController::class, "code_validate"]);
     Route::patch("warehouse/{id}", [WarehouseController::class, "destroy"]);
     Route::apiResource("warehouse", WarehouseController::class);
-    
+
     Route::post("role/validate", [RoleController::class, "validate_name"]);
     Route::patch("role/{id}", [RoleController::class, "destroy"]);
     Route::apiResource("role", RoleController::class);
-    
-    Route::get("report", [ReportController::class,"view"]);
-    Route::get("count", [ReportController::class,"count"]);
-    Route::get("export", [ReportController::class,"export"]);
+
+    Route::get("report", [ReportController::class, "view"]);
+    Route::get("count", [ReportController::class, "count"]);
+    Route::get("export", [ReportController::class, "export"]);
 
     Route::patch("cut_off/{id}", [CutoffController::class, "destroy"]);
     Route::apiResource("cut_off", CutoffController::class);
-
 });
 
 Route::post("login", [UserController::class, "login"]);
-Route::post("sms_order",[OrderController::class,"sms_order"]);
+Route::post("sms_order", [OrderController::class, "sms_order"]);

@@ -16,8 +16,8 @@ class TagAccountResource extends JsonResource
     {
         // return parent::toArray($request);
         return [
-            "location_id" => $this->location_id,
-            "location_code" => $this->location_code,
+            "id" => $this->location_id,
+            "code" => $this->location_code,
         ];
     }
 }
