@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Order;
 use App\Models\User;
 use App\Models\Transaction;
+use App\Models\Cutoff;
 
 use App\Http\Resources\OrderResource;
 use App\Http\Resources\TransactionResource;
@@ -95,11 +96,19 @@ class ApproverController extends Controller
             ->first()
             ->scope_approval->pluck("location_id");
 
+        $time_now = Carbon::now()
+            ->timezone("Asia/Manila")
+            ->format("H:i");
+        $date_today = Carbon::now()
+            ->timeZone("Asia/Manila")
+            ->format("Y-m-d");
+        $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
+
         $transaction = Transaction::where("id", $id);
 
         $not_found = $transaction->get();
         if ($not_found->isEmpty()) {
-            return GlobalFunction::not_found(Status::NOT_FOUND);
+            return GlobalFunction::denied(Status::NOT_FOUND);
         }
 
         $not_allowed = $transaction->whereIn("location_id", $user_scope)->get();
@@ -107,16 +116,27 @@ class ApproverController extends Controller
             return GlobalFunction::denied(Status::ACCESS_DENIED);
         }
 
-        $order = $transaction
-            ->get()
-            ->first()
-            ->update([
-                "approver_id" => $user->id,
-                "approver_name" => $user->account_name,
-                "date_approved" => date("Y-m-d H:i:s"),
-            ]);
+        $is_rush = Transaction::where("id", $id)
+            ->whereNotNull("rush")
+            ->whereDate("date_needed", $date_today)
+            ->count();
+        $is_advance = Transaction::where("id", $id)
+            ->where("date_needed", ">", $date_today)
+            ->count();
 
-        return GlobalFunction::save(Status::TRANSACTION_APPROVE, $order);
+        if ($time_now > $cutoff && !$is_rush && !$is_advance) {
+            return GlobalFunction::denied(Status::CUT_OFF);
+        }
+
+        $transaction->update([
+            "approver_id" => $user->id,
+            "approver_name" => $user->account_name,
+            "date_approved" => date("Y-m-d H:i:s"),
+        ]);
+
+        $transaction = new TransactionResource($transaction->get()->first());
+
+        return GlobalFunction::save(Status::TRANSACTION_APPROVE, $transaction);
     }
     public function restore(Request $request, $id)
     {
@@ -138,16 +158,15 @@ class ApproverController extends Controller
             return GlobalFunction::denied(Status::ACCESS_DENIED);
         }
 
-        $order = $transaction
-            ->get()
-            ->first()
-            ->update([
-                "approver_id" => null,
-                "approver_name" => null,
-                "date_approved" => null,
-            ]);
+        $transaction->update([
+            "approver_id" => null,
+            "approver_name" => null,
+            "date_approved" => null,
+        ]);
 
-        return GlobalFunction::save(Status::TRANSACTION_APPROVE, $order);
+        $transaction = new TransactionResource($transaction->get()->first());
+
+        return GlobalFunction::save(Status::TRANSACTION_RETURN, $transaction);
     }
 
     public function approver_count(Request $request)

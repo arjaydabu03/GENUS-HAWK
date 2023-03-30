@@ -13,6 +13,7 @@ use App\Models\Material;
 use App\Models\Transaction;
 use App\Models\UOM;
 use App\Models\Order;
+use App\Models\Cutoff;
 
 use App\Functions\SendSMS;
 
@@ -111,7 +112,7 @@ class SmsFunction
         }
         $store_not_exist = SmsFunction::store_not_exist($header, $requestor_no);
         if ($store_not_exist) {
-            return $missinstore_not_existg_year;
+            return $store_not_exist;
         }
 
         // return $error->filter()->values()->toArray();
@@ -479,7 +480,7 @@ class SmsFunction
 
     public static function cut_off($header, $requestor_no)
     {
-        $cutoff = "17:00";
+        $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
         $time_now = Carbon::now()
             ->timezone("Asia/Manila")
             ->format("H:i");
@@ -627,7 +628,7 @@ class SmsFunction
             "requestor_id" => $account_id,
             "requestor_name" => $account_name,
 
-            "approver_id" => 11,
+            "approver_id" => 0,
             "approver_name" => "SMSAPPROVER",
             "date_approved" => Carbon::now()->timeZone("Asia/Manila"),
         ]);

@@ -15,23 +15,31 @@ use App\Models\TagStoreLocation;
 
 use App\Http\Resources\StoreResource;
 use App\Http\Resources\TagAccountResource;
-
 use App\Http\Requests\StoreAccount\UpdateRequest;
+use App\Http\Requests\User\DisplayRequest;
 
 class StoreController extends Controller
 {
-    public function index()
+    public function index(DisplayRequest $request)
     {
-        $user_store = Store::with("tag_store")->get();
+        $rows = $request->rows;
+        $status = $request->status;
+
+        $user_store = Store::with("tag_store")
+            ->when($status === "inactive", function ($query) {
+                $query->onlyTrashed();
+            })
+            ->paginate($rows);
 
         if ($user_store->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        $store_collect = StoreResource::collection($user_store);
+        StoreResource::collection($user_store);
 
-        return GlobalFunction::display_response(Status::STORE_DISPLAY, $store_collect);
+        return GlobalFunction::display_response(Status::STORE_DISPLAY, $user_store);
     }
+
     public function store(Request $request)
     {
         $user_store = new Store([
@@ -67,6 +75,7 @@ class StoreController extends Controller
 
         return GlobalFunction::save(Status::STORE_REGISTERED, $store_collect);
     }
+
     public function update(UpdateRequest $request, $id)
     {
         $user = Store::find($id);

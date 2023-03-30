@@ -97,6 +97,7 @@ class StoreRequest extends FormRequest
     public function attributes()
     {
         return [
+            "order_no" => "order no.",
             "order.*.material.code" => "material",
             "order.*.material.id" => "Item",
         ];

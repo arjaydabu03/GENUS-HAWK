@@ -43,6 +43,8 @@ class Status
     const ROLE_UPDATE = "Role successfully updated.";
     const TRANSACTION_UPDATE = "Transaction successfully updated.";
     const TRANSACTION_APPROVE = "Transaction successfully approved.";
+    const TRANSACTION_RETURN = "Transaction successfully return.";
+    const TRANSACTION_SERVE = "Transaction successfully serve.";
     //SOFT DELETE
     const ARCHIVE_STATUS = "Successfully archived.";
     const RESTORE_STATUS = "Successfully restored.";
@@ -57,11 +59,13 @@ class Status
     //VALIDATION
     const SINGLE_VALIDATION = "Data has been validated.";
     const INVALID_ACTION = "Invalid action.";
+    const INVALID_UPDATE = "Unable to update this transaction is already approved.";
     const NEW_PASSWORD = "Please change your password.";
     const EXISTS = "Data already exists.";
     const ACCESS_DENIED = "You do not have permission.";
     const CUT_OFF = "Cut off reach.";
     const RUSH = "Rush field is required.";
+    const DATA_EXPORT = "Data has been exported successfully.";
 
     const MISSING_HASHTAG = "Missing hashtag.";
 }

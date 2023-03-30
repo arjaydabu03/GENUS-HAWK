@@ -5,6 +5,7 @@ namespace App\Http\Requests\Order;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Carbon\carbon;
+use App\Models\Cutoff;
 class UpdateRequest extends FormRequest
 {
     /**
@@ -124,7 +125,9 @@ class UpdateRequest extends FormRequest
                 date("Y-m-d", strtotime($this->input("date_needed"))) == $date_today &&
                 $time_now > $cutoff;
 
-            if ($is_rush) {
+            $with_rush_remarks = !empty($this->input("rush"));
+
+            if ($is_rush && !$with_rush_remarks) {
                 $validator->errors()->add("rush", "The rush field is required.");
             }
         });

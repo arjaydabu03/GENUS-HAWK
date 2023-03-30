@@ -38,6 +38,7 @@ return new class extends Migration {
             $table->string("customer_code");
             $table->string("customer_name");
             $table->string("rush")->nullable();
+            $table->timestamp("rush")->nullable();
 
             $table->unsignedInteger("requestor_id")->index();
             $table

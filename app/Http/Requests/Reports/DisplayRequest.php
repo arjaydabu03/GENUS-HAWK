@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Order;
+namespace App\Http\Requests\Reports;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -24,7 +24,7 @@ class DisplayRequest extends FormRequest
     public function rules()
     {
         return [
-            "status" => ["required", "string", "in:all,pending,approve,disapprove,today"],
+            "status" => ["required", "string", "in:all,pending,today"],
         ];
     }
 }

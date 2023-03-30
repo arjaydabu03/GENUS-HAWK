@@ -75,7 +75,9 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
 
     Route::get("report", [ReportController::class, "view"]);
     Route::get("count", [ReportController::class, "count"]);
+    Route::get("request_count", [ReportController::class, "requestor_count"]);
     Route::get("export", [ReportController::class, "export"]);
+    Route::patch("serve/{id}", [ReportController::class, "serve"]);
 
     Route::patch("cut_off/{id}", [CutoffController::class, "destroy"]);
     Route::apiResource("cut_off", CutoffController::class);

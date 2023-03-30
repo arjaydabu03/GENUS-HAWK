@@ -149,6 +149,10 @@ class UserController extends Controller
                 "username" => ["The provided credentials are incorrect."],
                 "password" => ["The provided credentials are incorrect."],
             ]);
+
+            if ($user || Hash::check($request->password, $user->username)) {
+                return GlobalFunction::login_user(Status::INVALID_ACTION);
+            }
         }
         $token = $user->createToken("PersonalAccessToken")->plainTextToken;
         $user["token"] = $token;

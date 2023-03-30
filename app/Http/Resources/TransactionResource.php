@@ -21,10 +21,12 @@ class TransactionResource extends JsonResource
             "cip_no" => $this->cip_no,
             "helpdesk_no" => $this->helpdesk_no,
             "rush" => $this->rush,
+
             "dates" => [
                 "date_ordered" => $this->date_ordered,
                 "date_needed" => $this->date_needed,
                 "date_approved" => $this->date_approved,
+                "date_serve" => $this->date_serve,
                 "date_disapproved" => $this->deleted_at,
             ],
             "reason" => $this->reason,

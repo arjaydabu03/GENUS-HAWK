@@ -43,6 +43,7 @@ class Transaction extends Model
         "approver_id",
         "approver_name",
         "rush",
+        "date_serve",
     ];
 
     public function orders()

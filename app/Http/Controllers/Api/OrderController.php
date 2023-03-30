@@ -104,21 +104,6 @@ class OrderController extends Controller
 
     public function store(StoreRequest $request)
     {
-        $time_now = Carbon::now()
-            ->timezone("Asia/Manila")
-            ->format("H:i");
-        $date_today = Carbon::now()
-            ->timeZone("Asia/Manila")
-            ->format("Y-m-d");
-        $cutoff = date("H:i", strtotime(Cutoff::get()->value("time")));
-
-        // $is_rush =
-        //     date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
-
-        // if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
-        //     return GlobalFunction::cutoff(Status::CUT_OFF);
-        // }
-
         $transaction = Transaction::create([
             "order_no" => $request["order_no"],
             "cip_no" => $request["cip_no"],
@@ -175,22 +160,18 @@ class OrderController extends Controller
 
     public function update(UpdateRequest $request, $id)
     {
-        $time_now = Carbon::now()
-            ->timezone("Asia/Manila")
-            ->format("H:i");
-        $date_today = Carbon::now()
-            ->timeZone("Asia/Manila")
-            ->format("Y-m-d");
-        $is_rush =
-            date("Y-m-d", strtotime($request->date_needed)) == $date_today && $time_now > $cutoff;
-
-        if ($time_now > $cutoff && !$is_rush && empty($request->rush)) {
-            return GlobalFunction::cutoff(Status::CUT_OFF);
-        }
-
         $transaction = Transaction::find($id);
 
         $orders = $request->order;
+
+        $invalid = $transaction
+            ->where("id", $id)
+            ->whereNull("date_approved")
+            ->get();
+
+        if ($invalid->isEmpty()) {
+            return GlobalFunction::invalid(Status::INVALID_UPDATE);
+        }
 
         $not_found = Transaction::where("id", $id)->get();
         if ($not_found->isEmpty()) {
@@ -198,7 +179,6 @@ class OrderController extends Controller
         }
 
         $transaction->update([
-            "order_no" => $request["order_no"],
             "cip_no" => $request["cip_no"],
             "helpdesk_no" => $request["helpdesk_no"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
