@@ -165,7 +165,7 @@ class UserController extends Controller
     }
 
     public function logout(Request $request)
-    {
+    {                                    
         // auth()->user()->tokens()->delete();//all token of one user
         auth()
             ->user()

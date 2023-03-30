@@ -19,6 +19,7 @@ class Transaction extends Model
         "helpdesk_no",
         "date_needed",
         "date_approved",
+        "date_ordered",
         "reason",
 
         "company_id",

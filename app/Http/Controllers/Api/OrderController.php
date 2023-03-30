@@ -109,6 +109,9 @@ class OrderController extends Controller
             "cip_no" => $request["cip_no"],
             "helpdesk_no" => $request["helpdesk_no"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
+            "date_ordered" => Carbon::now()
+                ->timeZone("Asia/Manila")
+                ->format("Y-m-d"),
             "rush" => $request["rush"],
 
             "company_id" => $request["company"]["id"],
