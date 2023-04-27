@@ -26,7 +26,7 @@ class TransactionResource extends JsonResource
                 "date_ordered" => $this->date_ordered,
                 "date_needed" => $this->date_needed,
                 "date_approved" => $this->date_approved,
-                "date_serve" => $this->date_serve,
+                "date_served" => $this->date_served,
                 "date_disapproved" => $this->deleted_at,
             ],
             "reason" => $this->reason,
@@ -49,6 +49,11 @@ class TransactionResource extends JsonResource
                 "id" => $this->customer_id,
                 "code" => $this->customer_code,
                 "name" => $this->customer_name,
+            ],
+            "charge" => [
+                "id" => $this->charge_id,
+                "code" => $this->charge_code,
+                "name" => $this->charge_name,
             ],
             "requestor" => [
                 "id" => $this->requestor_id,

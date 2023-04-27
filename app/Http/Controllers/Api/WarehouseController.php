@@ -40,7 +40,7 @@ class WarehouseController extends Controller
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY, $warehouse);
+        return GlobalFunction::response_function(Status::WAREHOUSE_DISPLAY, $warehouse);
     }
 
     public function show($id)
@@ -50,7 +50,7 @@ class WarehouseController extends Controller
         if ($warehouse->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::WAREHOUSE_DISPLAY, $warehouse->first());
+        return GlobalFunction::response_function(Status::WAREHOUSE_DISPLAY, $warehouse->first());
     }
 
     public function store(StoreRequest $request)
@@ -76,7 +76,7 @@ class WarehouseController extends Controller
             "name" => $request["name"],
         ]);
 
-        return GlobalFunction::update_response(Status::WAREHOUSE_UPDATE, $warehouse);
+        return GlobalFunction::response_function(Status::WAREHOUSE_UPDATE, $warehouse);
     }
 
     public function destroy($id)
@@ -102,11 +102,11 @@ class WarehouseController extends Controller
             $warehouse->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::delete_response($message, $warehouse);
+        return GlobalFunction::response_function($message, $warehouse);
     }
 
     public function code_validate(CodeRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 }

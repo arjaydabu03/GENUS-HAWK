@@ -50,7 +50,9 @@ class OrderController extends Controller
                     ->orWhere("department_name", "like", "%" . $search . "%")
                     ->orWhere("location_name", "like", "%" . $search . "%")
                     ->orWhere("customer_code", "like", "%" . $search . "%")
-                    ->orWhere("customer_name", "like", "%" . $search . "%");
+                    ->orWhere("customer_name", "like", "%" . $search . "%")
+                    ->orWhere("charge_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
@@ -85,7 +87,7 @@ class OrderController extends Controller
 
         TransactionResource::collection($order);
 
-        return GlobalFunction::display_response(Status::ORDER_DISPLAY, $order);
+        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
     public function show($id)
@@ -99,11 +101,13 @@ class OrderController extends Controller
 
         $order_collection = TransactionResource::collection($order);
 
-        return GlobalFunction::display_response(Status::USER_DISPLAY, $order_collection->first());
+        return GlobalFunction::response_function(Status::USER_DISPLAY, $order_collection->first());
     }
 
     public function store(StoreRequest $request)
     {
+        $user = Auth()->user();
+
         $transaction = Transaction::create([
             "order_no" => $request["order_no"],
             "cip_no" => $request["cip_no"],
@@ -112,6 +116,7 @@ class OrderController extends Controller
             "date_ordered" => Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d"),
+
             "rush" => $request["rush"],
 
             "company_id" => $request["company"]["id"],
@@ -130,8 +135,22 @@ class OrderController extends Controller
             "customer_code" => $request["customer"]["code"],
             "customer_name" => $request["customer"]["name"],
 
+            "charge_id" => $request["charge"]["id"],
+            "charge_code" => $request["charge"]["code"],
+            "charge_name" => $request["charge"]["name"],
+
             "requestor_id" => $request["requestor"]["id"],
             "requestor_name" => $request["requestor"]["name"],
+
+            "date_approved" =>
+                $user->role_id == 5
+                    ? Carbon::now()
+                        ->timeZone("Asia/Manila")
+                        ->format("Y-m-d H:i:s")
+                    : null,
+
+            "approver_id" => $user->role_id == 5 ? $user->id : null,
+            "approver_name" => $user->role_id == 5 ? $user->account_name : null,
         ]);
 
         foreach ($request->order as $key => $value) {
@@ -184,6 +203,10 @@ class OrderController extends Controller
         $transaction->update([
             "cip_no" => $request["cip_no"],
             "helpdesk_no" => $request["helpdesk_no"],
+            "charge_id" => $request["charge"]["id"],
+            "charge_code" => $request["charge"]["code"],
+            "charge_name" => $request["charge"]["name"],
+            "rush" => $request["rush"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
         ]);
 
@@ -231,7 +254,7 @@ class OrderController extends Controller
 
         $order_collection = new TransactionResource($transaction);
 
-        return GlobalFunction::update_response(Status::TRANSACTION_UPDATE, $order_collection);
+        return GlobalFunction::response_function(Status::TRANSACTION_UPDATE, $order_collection);
     }
 
     // Cancel transaction
@@ -277,7 +300,7 @@ class OrderController extends Controller
             ->delete();
         Order::where("transaction_id", $id)->delete();
 
-        return GlobalFunction::delete_response(Status::ARCHIVE_STATUS, $result);
+        return GlobalFunction::response_function(Status::ARCHIVE_STATUS, $result);
     }
     //cancel order
     public function cancelOrder(Request $request, $id)
@@ -301,7 +324,7 @@ class OrderController extends Controller
             })
             ->get();
         if ($not_allowed->isEmpty()) {
-            return GlobalFunction::delete_response(Status::ACCESS_DENIED);
+            return GlobalFunction::response_function(Status::ACCESS_DENIED);
         }
 
         $check_siblings = Order::where(
@@ -313,7 +336,7 @@ class OrderController extends Controller
 
             Order::where("id", $id)->delete();
 
-            return GlobalFunction::delete_response(Status::ARCHIVE_STATUS, $order);
+            return GlobalFunction::response_function(Status::ARCHIVE_STATUS, $order);
         }
         Transaction::where("id", $order->get()->first()->transaction_id)
             ->get()
@@ -358,6 +381,31 @@ class OrderController extends Controller
         }
 
         return SmsFunction::save_sms_order($header, $body, $requestor_no);
+        //    explode('',$header) ;
+    }
+    public function sms_cancel(Request $request)
+    {
+        $requestor_no = current($request->results)["from"];
+        $content = current($request->results)["cleanText"];
+
+        $header = current(preg_split("/\\r\\n|\\r|\\n/", $content));
+        $validate_header = SmsFunction::validate_header($header, $requestor_no);
+
+        if (!empty($validate_header)) {
+            return SmsFunction::send($requestor_no, $validate_header);
+        }
+
+        $body = explode("#", $content)[1];
+        $validate_body = SmsFunction::validate_body_delete($header, $body, $requestor_no);
+
+        if (!empty($validate_body)) {
+            return SmsFunction::send($requestor_no, $validate_body);
+        }
+
+        $header = explode("#", $content)[0];
+        $body = explode("#", $content)[1];
+        $response = SmsFunction::cancel_order($header, $body, $requestor_no);
+        return SmsFunction::send($requestor_no, $response);
         //    explode('',$header) ;
     }
 }

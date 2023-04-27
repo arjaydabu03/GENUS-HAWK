@@ -6,6 +6,9 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Carbon\carbon;
 use App\Models\Cutoff;
+use App\Models\Transaction;
+use App\Functions\GlobalFunction;
+use App\Response\Status;
 class UpdateRequest extends FormRequest
 {
     /**
@@ -51,6 +54,11 @@ class UpdateRequest extends FormRequest
             "customer.id" => "required",
             "customer.code" => "required",
             "customer.name" => "required",
+
+            "charge.id" => "required",
+            "charge.code" => "required",
+            "charge.name" => "required",
+
             "rush" => "nullable",
 
             "order.*.id" => "nullable",

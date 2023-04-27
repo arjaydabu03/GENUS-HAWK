@@ -56,7 +56,7 @@ class MaterialController extends Controller
         if ($is_empty) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::MATERIAL_DISPLAY, $material);
+        return GlobalFunction::response_function(Status::MATERIAL_DISPLAY, $material);
     }
 
     public function show($id)
@@ -67,7 +67,7 @@ class MaterialController extends Controller
         if ($material->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::MATERIAL_DISPLAY, $material->first());
+        return GlobalFunction::response_function(Status::MATERIAL_DISPLAY, $material->first());
     }
 
     public function store(MaterialRequest $request)
@@ -109,7 +109,7 @@ class MaterialController extends Controller
         ]);
 
         $material = $material->with("category", "uom")->firstWhere("id", $material->id);
-        return GlobalFunction::update_response(Status::MATERIAL_UPDATE, $material);
+        return GlobalFunction::response_function(Status::MATERIAL_UPDATE, $material);
     }
 
     public function destroy($id)
@@ -135,12 +135,12 @@ class MaterialController extends Controller
             $material->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::delete_response($message, $material);
+        return GlobalFunction::response_function($message, $material);
     }
 
     public function validate_code(CodeRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 
     public function import_material(ImportRequest $request)

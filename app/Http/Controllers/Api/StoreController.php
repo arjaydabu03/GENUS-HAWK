@@ -17,6 +17,9 @@ use App\Http\Resources\StoreResource;
 use App\Http\Resources\TagAccountResource;
 use App\Http\Requests\StoreAccount\UpdateRequest;
 use App\Http\Requests\User\DisplayRequest;
+use App\Http\Requests\StoreAccount\StoreRequest;
+use App\Http\Requests\StoreAccount\Validation\CodeRequest;
+use App\Http\Requests\StoreAccount\Validation\MobileRequest;
 
 class StoreController extends Controller
 {
@@ -24,11 +27,25 @@ class StoreController extends Controller
     {
         $rows = $request->rows;
         $status = $request->status;
+        $search = $request->search;
 
         $user_store = Store::with("tag_store")
             ->when($status === "inactive", function ($query) {
                 $query->onlyTrashed();
             })
+            ->where(function ($query) use ($search) {
+                $query
+                    ->where("account_code", "like", "%" . $search . "%")
+                    ->orWhere("account_name", "like", "%" . $search . "%")
+                    ->orWhere("company_code", "like", "%" . $search . "%")
+                    ->orWhere("company", "like", "%" . $search . "%")
+                    ->orWhere("department_code", "like", "%" . $search . "%")
+                    ->orWhere("department", "like", "%" . $search . "%")
+                    ->orWhere("location_code", "like", "%" . $search . "%")
+                    ->orWhere("location", "like", "%" . $search . "%")
+                    ->orWhere("mobile_no", "like", "%" . $search . "%");
+            })
+            ->orderByDesc("updated_at")
             ->paginate($rows);
 
         if ($user_store->isEmpty()) {
@@ -37,10 +54,10 @@ class StoreController extends Controller
 
         StoreResource::collection($user_store);
 
-        return GlobalFunction::display_response(Status::STORE_DISPLAY, $user_store);
+        return GlobalFunction::response_function(Status::STORE_DISPLAY, $user_store);
     }
 
-    public function store(Request $request)
+    public function store(StoreRequest $request)
     {
         $user_store = new Store([
             "account_code" => $request["code"],
@@ -135,7 +152,7 @@ class StoreController extends Controller
 
         $user = new StoreResource($user);
 
-        return GlobalFunction::update_response(Status::USER_UPDATE, $user);
+        return GlobalFunction::response_function(Status::USER_UPDATE, $user);
     }
 
     public function destroy(Request $request, $id)
@@ -162,6 +179,15 @@ class StoreController extends Controller
             $message = Status::RESTORE_STATUS;
         }
         $user = new StoreResource($user);
-        return GlobalFunction::delete_response($message, $user);
+        return GlobalFunction::response_function($message, $user);
+    }
+    public function code_validate(CodeRequest $request)
+    {
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
+    }
+
+    public function validate_mobile(MobileRequest $request)
+    {
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 }

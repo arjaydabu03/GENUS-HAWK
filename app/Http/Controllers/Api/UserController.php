@@ -40,6 +40,7 @@ class UserController extends Controller
         $search = $request->search;
         $status = $request->status;
         $rows = $request->rows;
+        $paginate = isset($request->paginate) ? $request->paginate : 1;
 
         $users = User::with("scope_approval", "scope_order", "role")
             ->when($status === "inactive", function ($query) {
@@ -58,9 +59,10 @@ class UserController extends Controller
                     ->orWhere("mobile_no", "like", "%" . $search . "%")
                     ->orWhere("username", "like", "%" . $search . "%")
                     ->orWhere("role_id", "like", "%" . $search . "%");
-            })
-            ->orderByDesc("updated_at")
-            ->paginate($rows);
+            });
+        $users = $paginate
+            ? $users->orderByDesc("updated_at")->paginate($rows)
+            : $users->orderByDesc("updated_at")->get();
 
         $is_empty = $users->isEmpty();
         if ($is_empty) {
@@ -68,7 +70,7 @@ class UserController extends Controller
         }
 
         UserResource::collection($users);
-        return GlobalFunction::display_response(Status::USER_DISPLAY, $users);
+        return GlobalFunction::response_function(Status::USER_DISPLAY, $users);
     }
 
     public function show($id)
@@ -83,7 +85,7 @@ class UserController extends Controller
             ->get();
         $user_collection = UserResource::collection($users)->first();
 
-        return GlobalFunction::display_response(Status::USER_DISPLAY, $user_collection);
+        return GlobalFunction::response_function(Status::USER_DISPLAY, $user_collection);
     }
 
     public function store(UserRequest $request)
@@ -161,17 +163,17 @@ class UserController extends Controller
 
         $cookie = cookie("authcookie", $token);
 
-        return GlobalFunction::login_user(Status::LOGIN_USER, $user)->withCookie($cookie);
+        return GlobalFunction::response_function(Status::LOGIN_USER, $user)->withCookie($cookie);
     }
 
     public function logout(Request $request)
-    {                                    
+    {
         // auth()->user()->tokens()->delete();//all token of one user
         auth()
             ->user()
             ->currentAccessToken()
             ->delete(); //current user
-        return GlobalFunction::logout_response(Status::LOGOUT_USER);
+        return GlobalFunction::response_function(Status::LOGOUT_USER);
     }
 
     public function destroy(Request $request, $id)
@@ -206,7 +208,7 @@ class UserController extends Controller
             $message = Status::RESTORE_STATUS;
         }
         $user = new UserResource($user);
-        return GlobalFunction::delete_response($message, $user);
+        return GlobalFunction::response_function($message, $user);
     }
 
     public function update(UserRequest $request, $id)
@@ -295,7 +297,7 @@ class UserController extends Controller
 
         $user = new UserResource($user);
 
-        return GlobalFunction::update_response(Status::USER_UPDATE, $user);
+        return GlobalFunction::response_function(Status::USER_UPDATE, $user);
     }
 
     public function reset_password(Request $request, $id)
@@ -308,7 +310,7 @@ class UserController extends Controller
             "password" => $new_password,
         ]);
 
-        return GlobalFunction::update_response(Status::CHANGE_PASSWORD);
+        return GlobalFunction::response_function(Status::CHANGE_PASSWORD);
     }
 
     public function change_password(ChangeRequest $request)
@@ -324,7 +326,7 @@ class UserController extends Controller
         $user->update([
             "password" => Hash::make($request["password"]),
         ]);
-        return GlobalFunction::update_response(Status::CHANGE_PASSWORD);
+        return GlobalFunction::response_function(Status::CHANGE_PASSWORD);
     }
 
     public function old_password(PasswordRequest $request)
@@ -339,21 +341,21 @@ class UserController extends Controller
 
     public function validate_username(UsernameRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 
     public function code_validate(CodeRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 
     public function validate_mobile(MobileRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 
     public function validate_name(NameRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 }

@@ -37,6 +37,11 @@ return new class extends Migration {
             $table->integer("customer_id");
             $table->string("customer_code");
             $table->string("customer_name");
+
+            $table->integer("charge_id");
+            $table->string("charge_code");
+            $table->string("charge_name");
+
             $table->string("rush")->nullable();
             $table->timestamp("rush")->nullable();
 

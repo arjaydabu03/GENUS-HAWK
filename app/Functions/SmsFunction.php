@@ -163,6 +163,49 @@ class SmsFunction
         }
     }
 
+    public static function validate_body_delete($header, $data, $requestor_no)
+    {
+        $type = "body";
+
+        $error = collect();
+        $error->push($missing_dash_lines = SmsFunction::missing_dash($data, $type, $requestor_no));
+        $error->push(
+            $multiple_dash_lines = SmsFunction::multiple_dash($data, $type, $requestor_no)
+        );
+        $error->push(
+            $alphanumberic_lines = SmsFunction::check_alphanumerics($data, $type, $requestor_no)
+        );
+        $error->push(
+            $missing_item_code_lines = SmsFunction::missing_code($data, $type, $requestor_no)
+        );
+        $error->push(
+            $unregistered_item_code_lines = SmsFunction::unregistered_item_code(
+                $data,
+                $requestor_no
+            )
+        );
+        $error->push($missing_qty_lines = SmsFunction::missing_qty($data, $requestor_no));
+
+        if (
+            count(
+                $error
+                    ->filter()
+                    ->values()
+                    ->toArray()
+            ) > 0
+        ) {
+            return SmsFunction::compose_order_error(
+                $requestor_no,
+                $missing_dash_lines,
+                $multiple_dash_lines,
+                $alphanumberic_lines,
+                $missing_item_code_lines,
+                $unregistered_item_code_lines,
+                $missing_qty_lines
+            );
+        }
+    }
+
     public static function compose_order_error(
         $requestor_no,
         $missing_dash_lines,
@@ -171,7 +214,7 @@ class SmsFunction
         $missing_item_code_lines,
         $unregistered_item_code_lines,
         $missing_qty_lines,
-        $duplicate_lines
+        $duplicate_lines = []
     ) {
         $type =
             "Missing dash : " .
@@ -628,7 +671,7 @@ class SmsFunction
             "requestor_id" => $account_id,
             "requestor_name" => $account_name,
 
-            "approver_id" => 0,
+            "approver_id" => 6,
             "approver_name" => "SMSAPPROVER",
             "date_approved" => Carbon::now()->timeZone("Asia/Manila"),
         ]);
@@ -669,5 +712,65 @@ class SmsFunction
         }
 
         return SmsFunction::send($requestor_no, $type);
+    }
+
+    public static function get_transaction($date_needed, $store_code, $order_no)
+    {
+        return Transaction::with([
+            "orders" => function ($query) {
+                $query->whereNull("deleted_at")->select("id", "transaction_id", "material_code");
+            },
+        ])
+            ->whereDate("date_needed", $date_needed)
+            ->where([
+                "location_code" => $store_code,
+                "order_no" => $order_no,
+            ])
+            ->first();
+    }
+
+    public static function cancel_order($header, $body, $requestor_no)
+    {
+        $type = "delete";
+        $store_code = explode("-", $header)[0];
+        $order_no = explode("-", $header)[1];
+        $date_needed =
+            explode("-", $header)[2] .
+            "-" .
+            explode("-", $header)[3] .
+            "-" .
+            explode("-", $header)[4];
+
+        $orders = array_values(array_filter(preg_split("/\\r\\n|\\r|\\n/", $body)));
+        $transaction = SmsFunction::get_transaction($date_needed, $store_code, $order_no);
+
+        if ($transaction && $transaction->orders) {
+            foreach ($orders as $order) {
+                $material_code = explode("-", $order)[0];
+                $orders = $transaction->orders;
+                $order_details = $orders->where("material_code", $material_code)->first();
+
+                if ($order_details) {
+                    $order_id = $order_details->id;
+                    Order::where("id", $order_id)->delete();
+                    $response = "delete";
+                } else {
+                    $response = "Order already cancelled";
+                }
+            }
+        }
+
+        $transaction = SmsFunction::get_transaction($date_needed, $store_code, $order_no);
+        $is_empty_transaction = empty($transaction);
+
+        if ($is_empty_transaction) {
+            $response = "Order already cancelled";
+        } else {
+            if ($transaction->orders->count() == 0) {
+                $transaction->delete();
+            }
+        }
+
+        return $response;
     }
 }

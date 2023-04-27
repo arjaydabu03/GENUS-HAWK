@@ -27,11 +27,16 @@ class ReportController extends Controller
         $paginate = $request->input("paginate", 1);
         $from = $request->from;
         $to = $request->to;
+
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
             ->format("Y-m-d");
 
-        $order = Transaction::with("orders")
+        $order = Transaction::with([
+            "orders" => function ($query) {
+                return $query->whereNull("deleted_at");
+            },
+        ])
             ->where(function ($query) use ($search) {
                 $query
                     ->where("date_ordered", "like", "%" . $search . "%")
@@ -50,7 +55,7 @@ class ReportController extends Controller
                 $to
             ) {
                 $query->where(function ($query) use ($from, $to) {
-                    $query0
+                    $query
                         ->whereDate("date_needed", ">=", $from)
                         ->whereDate("date_needed", "<=", $to);
                 });
@@ -80,7 +85,7 @@ class ReportController extends Controller
 
         TransactionResource::collection($order);
 
-        return GlobalFunction::display_response(Status::ORDER_DISPLAY, $order);
+        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
     public function serve(Request $request, $id)
@@ -93,14 +98,14 @@ class ReportController extends Controller
         }
 
         $serve->update([
-            "date_serve" => Carbon::now()
+            "date_served" => Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d"),
         ]);
 
         $serve = new TransactionResource($serve->get()->first());
 
-        return GlobalFunction::update_response(Status::TRANSACTION_SERVE, $serve);
+        return GlobalFunction::response_function(Status::TRANSACTION_SERVE, $serve);
     }
 
     public function count(Request $request)
@@ -129,7 +134,7 @@ class ReportController extends Controller
             "pending" => $pending,
         ];
 
-        return GlobalFunction::display_response(Status::COUNT_DISPLAY, $count);
+        return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
     }
     public function requestor_count(Request $request)
     {
@@ -165,7 +170,7 @@ class ReportController extends Controller
             "disapprove" => $disapprove,
         ];
 
-        return GlobalFunction::display_response(Status::COUNT_DISPLAY, $count);
+        return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
     }
     public function export(DisplayRequest $request)
     {
@@ -210,6 +215,6 @@ class ReportController extends Controller
                 });
             })
             ->get();
-        return GlobalFunction::display_response(Status::DATA_EXPORT, $order);
+        return GlobalFunction::response_function(Status::DATA_EXPORT, $order);
     }
 }

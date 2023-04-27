@@ -39,8 +39,9 @@ class ApproverController extends Controller
 
         $order = Transaction::with("orders")
             ->where(function ($query) use ($user_scope) {
-                $query->where("location_id", $user_scope)->whereNot("requestor_id", Auth::id());
+                $query->whereIn("location_id", $user_scope)->whereNot("requestor_id", Auth::id());
             })
+
             ->where(function ($query) use ($search) {
                 $query
                     ->where("date_ordered", "like", "%" . $search . "%")
@@ -85,7 +86,7 @@ class ApproverController extends Controller
 
         TransactionResource::collection($order);
 
-        return GlobalFunction::display_response(Status::ORDER_DISPLAY, $order);
+        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
     public function update(Request $request, $id)
@@ -181,13 +182,18 @@ class ApproverController extends Controller
             ->scope_approval->pluck("location_id");
 
         $all = Transaction::withTrashed()
+            ->whereNot("requestor_id", Auth::id())
             ->where(function ($query) use ($user_scope, $date_today) {
-                $query->whereIn("location_id", $user_scope)->whereDate("created_at", $date_today);
+                $query
+                    ->whereIn("location_id", $user_scope)
+                    ->whereDate("created_at", $date_today)
+                    ->whereNotNull("date_approved");
             })
             ->get()
             ->count();
 
         $pending = Transaction::whereNull("date_approved")
+            ->whereNot("requestor_id", Auth::id())
             ->where(function ($query) use ($user_scope, $date_today) {
                 $query->whereIn("location_id", $user_scope)->whereDate("created_at", $date_today);
             })
@@ -195,6 +201,7 @@ class ApproverController extends Controller
             ->count();
 
         $approve = Transaction::whereNotNull("date_approved")
+            ->whereNot("requestor_id", Auth::id())
             ->where(function ($query) use ($user_scope, $date_today) {
                 $query->whereIn("location_id", $user_scope)->whereDate("created_at", $date_today);
             })
@@ -202,6 +209,7 @@ class ApproverController extends Controller
             ->count();
 
         $disapprove = Transaction::onlyTrashed()
+            ->whereNot("requestor_id", Auth::id())
             ->whereNotNull("date_approved")
             ->where(function ($query) use ($user_scope, $date_today) {
                 $query->whereIn("location_id", $user_scope)->whereDate("created_at", $date_today);
@@ -216,6 +224,6 @@ class ApproverController extends Controller
             "disapprove" => $disapprove,
         ];
 
-        return GlobalFunction::display_response(Status::COUNT_DISPLAY, $count);
+        return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
     }
 }

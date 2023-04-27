@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\ApproverController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CutoffController;
+use App\Http\Controllers\Api\ChargeController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -42,6 +43,8 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
 
     Route::patch("archive/{id}", [StoreController::class, "destroy"]);
     Route::apiResource("user_store", StoreController::class);
+    Route::post("code_validate_store", [StoreController::class, "code_validate"]);
+    Route::post("validate_mobile_store", [StoreController::class, "validate_mobile"]);
 
     Route::patch("category/{id}", [CategoryController::class, "destroy"]);
     Route::apiResource("category", CategoryController::class);
@@ -81,7 +84,12 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
 
     Route::patch("cut_off/{id}", [CutoffController::class, "destroy"]);
     Route::apiResource("cut_off", CutoffController::class);
+
+    Route::apiResource("charge", ChargeController::class);
 });
 
 Route::post("login", [UserController::class, "login"]);
 Route::post("sms_order", [OrderController::class, "sms_order"]);
+Route::post("sms_cancel", [OrderController::class, "sms_cancel"]);
+Route::get("reports", [ReportController::class, "view"]);
+Route::get("users", [UserController::class, "index"]);

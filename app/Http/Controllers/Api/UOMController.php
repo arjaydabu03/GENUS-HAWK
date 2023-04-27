@@ -39,7 +39,7 @@ class UOMController extends Controller
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        return GlobalFunction::display_response(Status::UOM_DISPLAY, $uom);
+        return GlobalFunction::response_function(Status::UOM_DISPLAY, $uom);
     }
 
     public function show($id)
@@ -49,7 +49,7 @@ class UOMController extends Controller
         if ($uom->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::UOM_DISPLAY, $uom->first());
+        return GlobalFunction::response_function(Status::UOM_DISPLAY, $uom->first());
     }
 
     public function store(StoreRequest $request)
@@ -75,7 +75,7 @@ class UOMController extends Controller
             "description" => $request["description"],
         ]);
 
-        return GlobalFunction::update_response(Status::UOM_UPDATE, $uom);
+        return GlobalFunction::response_function(Status::UOM_UPDATE, $uom);
     }
 
     public function destroy($id)
@@ -101,10 +101,10 @@ class UOMController extends Controller
             $uom->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::delete_response($message, $uom);
+        return GlobalFunction::response_function($message, $uom);
     }
     public function code_validate(CodeRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 }

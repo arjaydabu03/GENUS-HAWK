@@ -36,7 +36,7 @@ class CategoryController extends Controller
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        return GlobalFunction::display_response(Status::CATEGORY_DISPLAY, $category);
+        return GlobalFunction::response_function(Status::CATEGORY_DISPLAY, $category);
     }
 
     public function show($id)
@@ -46,7 +46,7 @@ class CategoryController extends Controller
         if ($category->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::CATEGORY_DISPLAY, $category->first());
+        return GlobalFunction::response_function(Status::CATEGORY_DISPLAY, $category->first());
     }
 
     public function store(CategoryRequest $request)

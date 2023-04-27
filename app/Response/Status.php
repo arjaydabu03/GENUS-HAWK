@@ -17,6 +17,7 @@ class Status
     const CATEGORY_SAVE = "Category successfully registered.";
     const MATERIAL_SAVE = "Material successfully registered.";
     const MATERIAL_IMPORT = "Material imported successfully.";
+    const CHARGE_IMPORT = "Charge sync successfully.";
     const ORDER_SAVE = "Order successfully saved.";
     const UOM_SAVE = "Unit of measurement successfully saved.";
     const WAREHOUSE_SAVE = "Warehouse successfully saved.";
@@ -33,6 +34,7 @@ class Status
     const WAREHOUSE_DISPLAY = "Warehouse display successfully.";
     const ROLE_DISPLAY = "Role display successfully.";
     const CUT_OFF_DISPLAY = "Cut off display successfully.";
+    const CHARGE_DISPLAY = "Charge display successfully.";
     //UPDATE
     const USER_UPDATE = "User successfully updated.";
     const CATEGORY_UPDATE = "Category successfully updated.";

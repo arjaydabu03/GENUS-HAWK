@@ -4,7 +4,7 @@ namespace App\Http\Requests\StoreAccount;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateRequest extends FormRequest
+class StoreRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -42,7 +42,7 @@ class UpdateRequest extends FormRequest
             "company.id" => "required",
             "company.code" => "required",
             "company.name" => "required",
-            "tag_store" => ["required"],
+            "tag_store" => "required",
             "mobile_no" => [
                 "required",
                 "regex:[63]",
@@ -52,27 +52,5 @@ class UpdateRequest extends FormRequest
                     : "unique:users_store,mobile_no",
             ],
         ];
-    }
-
-    public function attributes()
-    {
-        return [
-            "tag_store" => "tag store for ordering",
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            "required_if" => "The :attribute field is required.",
-        ];
-    }
-
-    public function withValidator($validator)
-    {
-        $validator->after(function ($validator) {
-            // $validator->errors()->add("custom", "STOP!");
-            // $validator->errors()->add("custom", $this->route()->id);
-        });
     }
 }

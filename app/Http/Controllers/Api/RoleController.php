@@ -45,7 +45,7 @@ class RoleController extends Controller
 
         RoleResource::collection($role);
 
-        return GlobalFunction::display_response(Status::ROLE_DISPLAY, $role);
+        return GlobalFunction::response_function(Status::ROLE_DISPLAY, $role);
     }
 
     public function show($id)
@@ -55,7 +55,7 @@ class RoleController extends Controller
         if ($role->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
-        return GlobalFunction::display_response(Status::ROLE_DISPLAY, $role->first());
+        return GlobalFunction::response_function(Status::ROLE_DISPLAY, $role->first());
     }
 
     public function store(StoreRequest $request)
@@ -87,7 +87,7 @@ class RoleController extends Controller
             "access_permission" => $accessConvertedToString,
         ]);
 
-        return GlobalFunction::update_response(Status::ROLE_UPDATE, $role);
+        return GlobalFunction::response_function(Status::ROLE_UPDATE, $role);
     }
 
     public function destroy($id)
@@ -113,11 +113,11 @@ class RoleController extends Controller
             $role->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::delete_response($message, $role);
+        return GlobalFunction::response_function($message, $role);
     }
 
     public function validate_name(NameRequest $request)
     {
-        return GlobalFunction::single_validation(Status::SINGLE_VALIDATION);
+        return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }
 }
