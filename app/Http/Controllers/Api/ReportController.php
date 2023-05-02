@@ -47,8 +47,9 @@ class ReportController extends Controller
                     ->orWhere("department_name", "like", "%" . $search . "%")
                     ->orWhere("location_name", "like", "%" . $search . "%")
                     ->orWhere("customer_code", "like", "%" . $search . "%")
-
-                    ->orWhere("customer_name", "like", "%" . $search . "%");
+                    ->orWhere("customer_name", "like", "%" . $search . "%")
+                    ->orWhere("charge_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,

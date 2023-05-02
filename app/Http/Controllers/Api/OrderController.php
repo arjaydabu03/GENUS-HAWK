@@ -365,6 +365,7 @@ class OrderController extends Controller
     {
         $requestor_no = current($request->results)["from"];
         $content = current($request->results)["cleanText"];
+        // $keyword = current($request->results)["keyword"];
 
         $header = current(preg_split("/\\r\\n|\\r|\\n/", $content));
         $validate_header = SmsFunction::validate_header($header, $requestor_no);
@@ -381,7 +382,7 @@ class OrderController extends Controller
         }
 
         return SmsFunction::save_sms_order($header, $body, $requestor_no);
-        //    explode('',$header) ;
+        //    explode('',$header) ; for parameter Genus distri $keyword
     }
     public function sms_cancel(Request $request)
     {

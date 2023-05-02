@@ -620,7 +620,7 @@ class SmsFunction
         return SendSMS::send($type, $requestor_no);
     }
 
-    public static function save_sms_order($header, $body, $requestor_no)
+    public static function save_sms_order($header, $body, $requestor_no, $keyword)
     {
         $type = "success";
         $store_code = explode("-", $header)[0];
@@ -643,6 +643,7 @@ class SmsFunction
         $year = explode("-", $header)[2];
         $month = explode("-", $header)[3];
         $day = explode("-", $header)[4];
+        $drop_to = explode("-", $header)[5] ? explode("-", $header)[5] : null;
         $date_needed = $year . "-" . $month . "-" . $day;
 
         $get_materials = SmsFunction::get_materials();
@@ -674,6 +675,10 @@ class SmsFunction
             "approver_id" => 6,
             "approver_name" => "SMSAPPROVER",
             "date_approved" => Carbon::now()->timeZone("Asia/Manila"),
+
+            // ADDITIONALCOLUMNS FOR GENUS DISTRI (MTR, GTD & MTD)
+            // "order_type" => $keyword,
+            // "drop_to" => $drop_to,
         ]);
 
         foreach ($orders as $order) {

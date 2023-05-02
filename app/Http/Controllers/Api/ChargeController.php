@@ -44,9 +44,6 @@ class ChargeController extends Controller
 
         $charge = Charge::upsert($sync, ["sync_id"], ["code", "name", "deleted_at"]);
 
-        return GlobalFunction::save(
-            Status::CHARGE_IMPORT,
-            $request->toArray()->orderByDesc("updated_at")
-        );
+        return GlobalFunction::save(Status::CHARGE_IMPORT, $request->toArray());
     }
 }
