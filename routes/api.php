@@ -60,6 +60,7 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::patch("order/cancel/{id}", [OrderController::class, "cancelOrder"]);
     Route::patch("transaction/cancel/{id}", [OrderController::class, "cancelTransaction"]);
     Route::get("transaction/notification", [OrderController::class, "count"]);
+    Route::get("elixir_order", [OrderController::class, "elixir_order"]);
 
     Route::apiResource("approval", ApproverController::class);
     Route::patch("order/restore/{id}", [ApproverController::class, "restore"]);

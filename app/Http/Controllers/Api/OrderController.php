@@ -90,6 +90,42 @@ class OrderController extends Controller
         return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
+    public function elixir_order(Request $request)
+    {
+        $status = $request->input("status", "");
+        $from = $request->from;
+        $to = $request->to;
+        $date_today = Carbon::now()
+            ->timeZone("Asia/Manila")
+            ->format("Y-m-d");
+        $order = Transaction::with("orders")
+            ->whereNotNull("date_approved")
+            ->whereNull("deleted_at")
+            ->whereNotNull("date_served")
+            ->when(isset($request->from) && isset($request->to), function ($query) use (
+                $from,
+                $to
+            ) {
+                $query->where(function ($query) use ($from, $to) {
+                    $query
+                        ->whereDate("date_needed", ">=", $from)
+                        ->whereDate("date_needed", "<=", $to);
+                });
+            })
+            ->when($status === "today", function ($query) use ($date_today) {
+                $query->whereNotNull("date_approved")->whereDate("date_needed", $date_today);
+            })
+            ->when($status === "pending", function ($query) use ($date_today) {
+                $query->whereDate("date_needed", ">", $date_today)->whereNotNull("date_approved");
+            })
+            ->when($status === "all", function ($query) {
+                $query->whereNotNull("date_needed")->whereNotNull("date_approved");
+            })
+            ->orderByDesc("updated_at")
+            ->get();
+        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
+    }
+
     public function show($id)
     {
         $order = Transaction::with("orders")

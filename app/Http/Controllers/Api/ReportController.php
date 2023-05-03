@@ -74,7 +74,7 @@ class ReportController extends Controller
 
         $order = $paginate
             ? $order->orderByDesc("updated_at")->paginate($rows)
-            : $order
+            : $order3
                 ->orderByDesc("updated_at")
                 ->with("orders")
                 ->get();
