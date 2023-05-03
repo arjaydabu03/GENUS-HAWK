@@ -14,6 +14,7 @@ use App\Response\Status;
 use App\Functions\GlobalFunction;
 
 use App\Models\User;
+use App\Models\Store;
 use App\Models\TagAccount;
 use App\Models\TagAccountOrder;
 use App\Models\Location;
@@ -71,6 +72,17 @@ class UserController extends Controller
 
         UserResource::collection($users);
         return GlobalFunction::response_function(Status::USER_DISPLAY, $users);
+    }
+
+    public function customer(Request $request)
+    {
+        $store = Store::get();
+        $user = User::get();
+
+        $customer = [...$user, ...$store]; //array merge php 8
+
+        $account = collect($customer)->unique("account_code");
+        return GlobalFunction::response_function(Status::USER_DISPLAY, $account);
     }
 
     public function show($id)

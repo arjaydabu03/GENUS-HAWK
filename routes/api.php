@@ -35,11 +35,13 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::post("validate_mobile", [UserController::class, "validate_mobile"]);
     Route::post("validate_name", [UserController::class, "validate_name"]);
     Route::put("user/reset/{id}", [UserController::class, "reset_password"]);
+    Route::get("customer", [UserController::class, "customer"]);
 
     Route::put("user/old_password/{id}", [UserController::class, "old_password"]);
     Route::put("user/change_password/", [UserController::class, "change_password"]);
     Route::put("user/{id}", [UserController::class, "update"]);
     Route::apiResource("user", UserController::class);
+    Route::get("transaction/notification", [OrderController::class, "count"]);
 
     Route::patch("archive/{id}", [StoreController::class, "destroy"]);
     Route::apiResource("user_store", StoreController::class);
@@ -91,5 +93,5 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
 Route::post("login", [UserController::class, "login"]);
 Route::post("sms_order", [OrderController::class, "sms_order"]);
 Route::post("sms_cancel", [OrderController::class, "sms_cancel"]);
-Route::get("reports", [ReportController::class, "view"]);
-Route::get("users", [UserController::class, "index"]);
+// Route::get("reports", [ReportController::class, "view"]);
+// Route::get("users", [UserController::class, "index"]);
