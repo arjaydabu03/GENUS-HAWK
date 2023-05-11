@@ -38,9 +38,13 @@ class Transaction extends Model
         "customer_code",
         "customer_name",
 
-        "charge_id",
-        "charge_code",
-        "charge_name",
+        "charge_department_id",
+        "charge_department_code",
+        "charge_department_name",
+
+        "charge_location_id",
+        "charge_location_code",
+        "charge_location_name",
 
         "requestor_id",
         "requestor_name",

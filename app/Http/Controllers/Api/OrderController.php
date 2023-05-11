@@ -51,8 +51,10 @@ class OrderController extends Controller
                     ->orWhere("location_name", "like", "%" . $search . "%")
                     ->orWhere("customer_code", "like", "%" . $search . "%")
                     ->orWhere("customer_name", "like", "%" . $search . "%")
-                    ->orWhere("charge_code", "like", "%" . $search . "%")
-                    ->orWhere("charge_name", "like", "%" . $search . "%");
+                    ->orWhere("charge_department_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_department_name", "like", "%" . $search . "%")
+                    ->orWhere("charge_location_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_location_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
@@ -98,10 +100,13 @@ class OrderController extends Controller
         $date_today = Carbon::now()
             ->timeZone("Asia/Manila")
             ->format("Y-m-d");
-        $order = Transaction::with("orders")
+        $order = Transaction::with([
+            "orders" => function ($query) {
+                return $query->whereNull("deleted_at");
+            },
+        ])
             ->whereNotNull("date_approved")
             ->whereNull("deleted_at")
-            ->whereNotNull("date_served")
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
                 $to
@@ -123,6 +128,7 @@ class OrderController extends Controller
             })
             ->orderByDesc("updated_at")
             ->get();
+
         return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
@@ -171,9 +177,13 @@ class OrderController extends Controller
             "customer_code" => $request["customer"]["code"],
             "customer_name" => $request["customer"]["name"],
 
-            "charge_id" => $request["charge"]["id"],
-            "charge_code" => $request["charge"]["code"],
-            "charge_name" => $request["charge"]["name"],
+            "charge_department_id" => $request["charge_department"]["id"],
+            "charge_department_code" => $request["charge_department"]["code"],
+            "charge_department_name" => $request["charge_department"]["name"],
+
+            "charge_location_id" => $request["charge_location"]["id"],
+            "charge_location_code" => $request["charge_location"]["code"],
+            "charge_location_name" => $request["charge_location"]["name"],
 
             "requestor_id" => $request["requestor"]["id"],
             "requestor_name" => $request["requestor"]["name"],

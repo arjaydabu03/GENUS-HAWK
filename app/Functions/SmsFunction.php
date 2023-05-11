@@ -14,6 +14,7 @@ use App\Models\Transaction;
 use App\Models\UOM;
 use App\Models\Order;
 use App\Models\Cutoff;
+use App\Models\TagStoreLocation;
 
 use App\Functions\SendSMS;
 
@@ -513,11 +514,22 @@ class SmsFunction
     {
         $store_code = explode("-", $header)[0];
 
-        $is_exist = Store::firstWhere("location_code", $store_code);
+        $is_exist = Store::where("location_code", $store_code)
+            ->where("mobile_no", $requestor_no)
+            ->first();
 
         if (!$is_exist) {
-            $type = "Store code not exists.";
-            return $type;
+            $is_tag = Store::with("tag_store")
+                ->where("mobile_no", $requestor_no)
+                ->whereHas("tag_store", function ($query) use ($store_code) {
+                    $query->where("location_code", $store_code);
+                })
+                ->exists();
+            if (!$is_tag) {
+                return "Store code not tagged.";
+            } elseif (!$is_tag && !$is_exists) {
+                return "Store code not exists.";
+            }
         }
     }
 
@@ -620,7 +632,7 @@ class SmsFunction
         return SendSMS::send($type, $requestor_no);
     }
 
-    public static function save_sms_order($header, $body, $requestor_no, $keyword)
+    public static function save_sms_order($header, $body, $requestor_no)
     {
         $type = "success";
         $store_code = explode("-", $header)[0];
@@ -643,7 +655,7 @@ class SmsFunction
         $year = explode("-", $header)[2];
         $month = explode("-", $header)[3];
         $day = explode("-", $header)[4];
-        $drop_to = explode("-", $header)[5] ? explode("-", $header)[5] : null;
+        // $drop_to = explode("-", $header)[5] ? explode("-", $header)[5] : null;
         $date_needed = $year . "-" . $month . "-" . $day;
 
         $get_materials = SmsFunction::get_materials();
@@ -661,6 +673,14 @@ class SmsFunction
             "department_code" => $department_code,
             "department_name" => $department,
 
+            "charge_department_id" => $department_id,
+            "charge_department_code" => $department_code,
+            "charge_department_name" => $department,
+
+            "charge_location_id" => $location_id,
+            "charge_location_code" => $location_code,
+            "charge_location_name" => $location,
+
             "location_id" => $location_id,
             "location_code" => $location_code,
             "location_name" => $location,
@@ -674,6 +694,7 @@ class SmsFunction
 
             "approver_id" => 6,
             "approver_name" => "SMSAPPROVER",
+            "date_ordered" => Carbon::now()->timeZone("Asia/Manila"),
             "date_approved" => Carbon::now()->timeZone("Asia/Manila"),
 
             // ADDITIONALCOLUMNS FOR GENUS DISTRI (MTR, GTD & MTD)

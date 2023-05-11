@@ -76,12 +76,14 @@ class UserController extends Controller
 
     public function customer(Request $request)
     {
-        $store = Store::get();
-        $user = User::get();
+        $store = Store::with("scope_order")->get();
+        $user = User::with("scope_order")->get();
 
         $customer = [...$user, ...$store]; //array merge php 8
 
-        $account = collect($customer)->unique("account_code");
+        $account = collect($customer)
+            ->unique("account_code")
+            ->values();
         return GlobalFunction::response_function(Status::USER_DISPLAY, $account);
     }
 

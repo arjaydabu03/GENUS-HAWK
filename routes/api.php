@@ -14,7 +14,9 @@ use App\Http\Controllers\Api\ApproverController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\CutoffController;
-use App\Http\Controllers\Api\ChargeController;
+use App\Http\Controllers\Api\CompanyController;
+use App\Http\Controllers\Api\DepartmentController;
+use App\Http\Controllers\Api\LocationController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -88,7 +90,9 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::patch("cut_off/{id}", [CutoffController::class, "destroy"]);
     Route::apiResource("cut_off", CutoffController::class);
 
-    Route::apiResource("charge", ChargeController::class);
+    Route::apiResource("company", CompanyController::class);
+    Route::apiResource("department", DepartmentController::class);
+    Route::apiResource("location", LocationController::class);
 });
 
 Route::post("login", [UserController::class, "login"]);

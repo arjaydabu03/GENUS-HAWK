@@ -50,10 +50,15 @@ class TransactionResource extends JsonResource
                 "code" => $this->customer_code,
                 "name" => $this->customer_name,
             ],
-            "charge" => [
-                "id" => $this->charge_id,
-                "code" => $this->charge_code,
-                "name" => $this->charge_name,
+            "charge_department" => [
+                "id" => $this->charge_department_id,
+                "code" => $this->charge_department_code,
+                "name" => $this->charge_department_name,
+            ],
+            "charge_location" => [
+                "id" => $this->charge_location_id,
+                "code" => $this->charge_location_code,
+                "name" => $this->charge_location_name,
             ],
             "requestor" => [
                 "id" => $this->requestor_id,

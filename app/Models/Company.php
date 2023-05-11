@@ -6,13 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Charge extends Model
+class Company extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = "charge";
+    protected $table = "company";
 
-    protected $fillable = ["code", "sync_id", "name", "deleted_at"];
-
-    protected $hidden = ["created_at", "deleted_at"];
+    protected $fillable = ["sync_id", "code", "name"];
 }
