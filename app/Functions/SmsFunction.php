@@ -116,7 +116,10 @@ class SmsFunction
             return $store_not_exist;
         }
 
-        // return $error->filter()->values()->toArray();
+        return $error
+            ->filter()
+            ->values()
+            ->toArray();
     }
 
     public static function validate_body($header, $data, $requestor_no)
@@ -140,8 +143,10 @@ class SmsFunction
                 $requestor_no
             )
         );
-        $error->push($missing_qty_lines = SmsFunction::missing_qty($data, $requestor_no));
+        $error->push($missing_qty = SmsFunction::missing_qty($data, $requestor_no));
         $error->push($duplicate_lines = SmsFunction::duplicate($header, $data, $requestor_no));
+
+        $error->push( $is_multiple_products = SmsFunction::is_multiple_products($data, $requestor_no));
 
         if (
             count(
@@ -158,8 +163,9 @@ class SmsFunction
                 $alphanumberic_lines,
                 $missing_item_code_lines,
                 $unregistered_item_code_lines,
-                $missing_qty_lines,
-                $duplicate_lines
+                $missing_qty,
+                $duplicate_lines,
+                $is_multiple_products
             );
         }
     }
@@ -185,7 +191,10 @@ class SmsFunction
                 $requestor_no
             )
         );
-        $error->push($missing_qty_lines = SmsFunction::missing_qty($data, $requestor_no));
+        $error->push($missing_qty = SmsFunction::missing_qty($data, $requestor_no));
+        $error->push(
+            $is_multiple_products = SmsFunction::is_multiple_products($data, $requestor_no)
+        );
 
         if (
             count(
@@ -202,7 +211,8 @@ class SmsFunction
                 $alphanumberic_lines,
                 $missing_item_code_lines,
                 $unregistered_item_code_lines,
-                $missing_qty_lines
+                $missing_qty,
+                $is_multiple_products
             );
         }
     }
@@ -214,8 +224,9 @@ class SmsFunction
         $alphanumberic_lines,
         $missing_item_code_lines,
         $unregistered_item_code_lines,
-        $missing_qty_lines,
-        $duplicate_lines = []
+        $missing_qty,
+        $duplicate_lines = [],
+        $is_multiple_products = []
     ) {
         $type =
             "Missing dash : " .
@@ -231,13 +242,16 @@ class SmsFunction
             implode(",", $unregistered_item_code_lines) .
             "\n" .
             "Missing Qty : " .
-            implode(",", $missing_qty_lines) .
+            implode(",", $missing_qty) .
             "\n" .
             "Qty not number : " .
             implode(",", $alphanumberic_lines) .
             "\n" .
             "Duplicate Orders : " .
             implode(",", $duplicate_lines) .
+            "\n" .
+            "Multiple Item code : " .
+            implode(",", $is_multiple_products) .
             "\n";
 
         return $type;
@@ -579,27 +593,29 @@ class SmsFunction
         $orders = array_values(array_filter(preg_split("/\\r\\n|\\r|\\n/", $data)));
 
         foreach ($orders as $k => $order) {
-            if (!isset(explode("-", $order)[1])) {
+            $product = explode("-", $order)[1];
+            if (empty($product)) {
                 array_push($affected_rows, $k + 1);
             }
         }
-
         return $affected_rows;
     }
 
     public static function duplicate($header, $data, $requestor_no)
     {
         $affected_rows = [];
+
         $order_no = explode("-", $header)[1];
         $orders = array_values(array_filter(preg_split("/\\r\\n|\\r|\\n/", $data)));
         $transactions = SmsFunction::get_transaction_orders();
         $date_today = date("Y-m-d", strtotime(Carbon::now()));
         $requestor_id = Store::where("mobile_no", $requestor_no)->first()->id;
+        $account_name = Store::where("mobile_no", $requestor_no)->first()->account_name;
 
         $transactions = $transactions
             ->where("requestor_id", $requestor_id)
             ->where("order_no", $order_no)
-            ->where("approver_name", "SMSAPPROVER")
+            ->where("approver_name", $account_name)
             ->whereBetween("date_ordered", [$date_today . " 00:00:00", $date_today . " 24:00:00"]);
 
         if (!$transactions->isEmpty()) {
@@ -615,6 +631,22 @@ class SmsFunction
             }
         }
         return $affected_rows;
+    }
+
+    public static function is_multiple_products($data)
+    {
+        $orders = array_values(array_filter(preg_split("/\\r\\n|\\r|\\n/", $data)));
+        $product_codes = array_map(function ($item) {
+            return explode("-", $item)[0];
+        }, $orders);
+        $unique = array_unique($product_codes);
+
+        $duplicates = array_diff_assoc($product_codes, $unique);
+        $duplicate_keys = array_keys(array_intersect($product_codes, $duplicates));
+        $duplicate_keys = array_map(function ($value) {
+            return $value + 1;
+        }, $duplicate_keys);
+        return $duplicate_keys;
     }
 
     public static function get_materials()
@@ -673,6 +705,10 @@ class SmsFunction
             "department_code" => $department_code,
             "department_name" => $department,
 
+            "charge_company_id" => $company_id,
+            "charge_company_code" => $company_code,
+            "charge_company_name" => $company,
+
             "charge_department_id" => $department_id,
             "charge_department_code" => $department_code,
             "charge_department_name" => $department,
@@ -688,12 +724,13 @@ class SmsFunction
             "customer_id" => $location_id,
             "customer_code" => $location_code,
             "customer_name" => $location,
+            "order_type" => "sms",
 
             "requestor_id" => $account_id,
             "requestor_name" => $account_name,
 
-            "approver_id" => 6,
-            "approver_name" => "SMSAPPROVER",
+            "approver_id" => $account_id,
+            "approver_name" => $account_name,
             "date_ordered" => Carbon::now()->timeZone("Asia/Manila"),
             "date_approved" => Carbon::now()->timeZone("Asia/Manila"),
 

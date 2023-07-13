@@ -12,4 +12,6 @@ class TagStoreLocation extends Model
     protected $table = "tag_store_location";
 
     protected $fillable = ["account_id", "location_id", "location_code"];
+    
+    protected $hidden = ["account_id", "created_at", "updated_at", "deleted_at"];
 }

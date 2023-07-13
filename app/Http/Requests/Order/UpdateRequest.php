@@ -55,9 +55,13 @@ class UpdateRequest extends FormRequest
             "customer.code" => "required",
             "customer.name" => "required",
 
-            "charge.id" => "required",
-            "charge.code" => "required",
-            "charge.name" => "required",
+            "charge_department.id" => "required",
+            "charge_department.code" => "required",
+            "charge_department.name" => "required",
+
+            "charge_location.id" => "required",
+            "charge_location.code" => "required",
+            "charge_location.name" => "required",
 
             "rush" => "nullable",
 

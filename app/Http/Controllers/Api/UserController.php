@@ -76,8 +76,20 @@ class UserController extends Controller
 
     public function customer(Request $request)
     {
-        $store = Store::with("scope_order")->get();
-        $user = User::with("scope_order")->get();
+        $store = Store::with("scope_order")
+            ->get()
+            ->each(function ($item) {
+                $item->account_type = "sms";
+
+                return $item;
+            });
+        $user = User::with("scope_order")
+            ->get()
+            ->each(function ($item) {
+                $item->account_type = "online";
+
+                return $item;
+            });
 
         $customer = [...$user, ...$store]; //array merge php 8
 

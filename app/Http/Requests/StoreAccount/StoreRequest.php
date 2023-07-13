@@ -42,7 +42,7 @@ class StoreRequest extends FormRequest
             "company.id" => "required",
             "company.code" => "required",
             "company.name" => "required",
-            "tag_store" => "required",
+            "scope_order" => "required",
             "mobile_no" => [
                 "required",
                 "regex:[63]",

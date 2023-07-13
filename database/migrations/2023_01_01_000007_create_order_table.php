@@ -15,11 +15,11 @@ return new class extends Migration {
         Schema::create("order", function (Blueprint $table) {
             $table->increments("id");
             $table->unsignedInteger("transaction_id")->index();
-            $table
-                ->foreign("transaction_id")
-                ->references("id")
-                ->on("transactions")
-                ->onDelete("cascade");
+            // $table
+            //     ->foreign("transaction_id")
+            //     ->references("id")
+            //     ->on("transactions")
+            //     ->onDelete("cascade");
 
             $table->unsignedInteger("requestor_id")->index();
             $table

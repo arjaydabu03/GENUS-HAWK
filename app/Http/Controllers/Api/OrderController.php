@@ -92,45 +92,49 @@ class OrderController extends Controller
         return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
     }
 
-    public function elixir_order(Request $request)
-    {
-        $status = $request->input("status", "");
-        $from = $request->from;
-        $to = $request->to;
-        $date_today = Carbon::now()
-            ->timeZone("Asia/Manila")
-            ->format("Y-m-d");
-        $order = Transaction::with([
-            "orders" => function ($query) {
-                return $query->whereNull("deleted_at");
-            },
-        ])
-            ->whereNotNull("date_approved")
-            ->whereNull("deleted_at")
-            ->when(isset($request->from) && isset($request->to), function ($query) use (
-                $from,
-                $to
-            ) {
-                $query->where(function ($query) use ($from, $to) {
-                    $query
-                        ->whereDate("date_needed", ">=", $from)
-                        ->whereDate("date_needed", "<=", $to);
-                });
-            })
-            ->when($status === "today", function ($query) use ($date_today) {
-                $query->whereNotNull("date_approved")->whereDate("date_needed", $date_today);
-            })
-            ->when($status === "pending", function ($query) use ($date_today) {
-                $query->whereDate("date_needed", ">", $date_today)->whereNotNull("date_approved");
-            })
-            ->when($status === "all", function ($query) {
-                $query->whereNotNull("date_needed")->whereNotNull("date_approved");
-            })
-            ->orderByDesc("updated_at")
-            ->get();
+    // public function elixir_order(Request $request)
+    // {
+    //     $status = $request->input("status", "");
+    //     $from = $request->from;
+    //     $to = $request->to;
+    //     $date_today = Carbon::now()
+    //         ->timeZone("Asia/Manila")
+    //         ->format("Y-m-d");
+    //     $order = Transaction::with([
+    //         "orders" => function ($query) {
+    //             return $query->whereNull("deleted_at");
+    //         },
+    //     ])
+    //         ->whereNotNull("date_approved")
+    //         ->whereNull("deleted_at")
+    //         ->when(isset($request->from) && isset($request->to), function ($query) use (
+    //             $from,
+    //             $to
+    //         ) {
+    //             $query->where(function ($query) use ($from, $to) {
+    //                 $query
+    //                     ->whereDate("date_needed", ">=", $from)
+    //                     ->whereDate("date_needed", "<=", $to);
+    //             });
+    //         })
+    //         ->when($status === "today", function ($query) use ($date_today) {
+    //             $query->whereNotNull("date_approved")->whereDate("date_needed", $date_today);
+    //         })
+    //         ->when($status === "pending", function ($query) use ($date_today) {
+    //             $query->whereDate("date_needed", ">", $date_today)->whereNotNull("date_approved");
+    //         })
+    //         ->when($status === "all", function ($query) {
+    //             $query->whereNotNull("date_needed")->whereNotNull("date_approved");
+    //         })
+    //         ->orderByDesc("updated_at")
+    //         ->get();
 
-        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
-    }
+    //     if ($order->isEmpty()) {
+    //         return GlobalFunction::not_found(Status::NOT_FOUND);
+    //     }
+
+    //     return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order);
+    // }
 
     public function show($id)
     {
@@ -143,7 +147,7 @@ class OrderController extends Controller
 
         $order_collection = TransactionResource::collection($order);
 
-        return GlobalFunction::response_function(Status::USER_DISPLAY, $order_collection->first());
+        return GlobalFunction::response_function(Status::ORDER_DISPLAY, $order_collection->first());
     }
 
     public function store(StoreRequest $request)
@@ -152,14 +156,15 @@ class OrderController extends Controller
 
         $transaction = Transaction::create([
             "order_no" => $request["order_no"],
-            "cip_no" => $request["cip_no"],
-            "helpdesk_no" => $request["helpdesk_no"],
+
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
             "date_ordered" => Carbon::now()
                 ->timeZone("Asia/Manila")
                 ->format("Y-m-d"),
+            "hri_customer" => $request["hri_customer"],
 
             "rush" => $request["rush"],
+            "order_type" => "online",
 
             "company_id" => $request["company"]["id"],
             "company_code" => $request["company"]["code"],
@@ -176,6 +181,10 @@ class OrderController extends Controller
             "customer_id" => $request["customer"]["id"],
             "customer_code" => $request["customer"]["code"],
             "customer_name" => $request["customer"]["name"],
+
+            "charge_company_id" => $request["charge_company"]["id"],
+            "charge_company_code" => $request["charge_company"]["code"],
+            "charge_company_name" => $request["charge_company"]["name"],
 
             "charge_department_id" => $request["charge_department"]["id"],
             "charge_department_code" => $request["charge_department"]["code"],
@@ -247,11 +256,19 @@ class OrderController extends Controller
         }
 
         $transaction->update([
-            "cip_no" => $request["cip_no"],
-            "helpdesk_no" => $request["helpdesk_no"],
-            "charge_id" => $request["charge"]["id"],
-            "charge_code" => $request["charge"]["code"],
-            "charge_name" => $request["charge"]["name"],
+            "hri_customer" => $request["hri_customer"],
+
+            "charge_company_id" => $request["charge_company"]["id"],
+            "charge_company_code" => $request["charge_company"]["code"],
+            "charge_company_name" => $request["charge_company"]["name"],
+
+            "charge_department_id" => $request["charge_department"]["id"],
+            "charge_department_code" => $request["charge_department"]["code"],
+            "charge_department_name" => $request["charge_department"]["name"],
+
+            "charge_location_id" => $request["charge_location"]["id"],
+            "charge_location_code" => $request["charge_location"]["code"],
+            "charge_location_name" => $request["charge_location"]["name"],
             "rush" => $request["rush"],
             "date_needed" => date("Y-m-d", strtotime($request["date_needed"])),
         ]);
@@ -324,7 +341,7 @@ class OrderController extends Controller
                 return $query->where("requestor_id", $user->id);
             })
             ->when($user->role_id == 2, function ($query) use ($user_scope) {
-                return $query->whereIn("location_id", $user_scope);
+                return $query->whereIn("department_id", $user_scope);
             })
             ->get();
         if ($not_allowed->isEmpty()) {

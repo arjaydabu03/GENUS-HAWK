@@ -48,8 +48,10 @@ class ReportController extends Controller
                     ->orWhere("location_name", "like", "%" . $search . "%")
                     ->orWhere("customer_code", "like", "%" . $search . "%")
                     ->orWhere("customer_name", "like", "%" . $search . "%")
-                    ->orWhere("charge_code", "like", "%" . $search . "%")
-                    ->orWhere("charge_name", "like", "%" . $search . "%");
+                    ->orWhere("charge_department_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_department_name", "like", "%" . $search . "%")
+                    ->orWhere("charge_location_code", "like", "%" . $search . "%")
+                    ->orWhere("charge_location_name", "like", "%" . $search . "%");
             })
             ->when(isset($request->from) && isset($request->to), function ($query) use (
                 $from,
@@ -116,23 +118,17 @@ class ReportController extends Controller
 
             ->format("Y-m-d");
 
-        $all = Transaction::whereNotNull("date_needed")
-            ->whereNotNull("date_approved")
-            ->count();
+       
         $today = Transaction::whereNotNull("date_approved")
             ->whereDate("date_needed", $date_today)
             ->get()
             ->count();
-        $pending = Transaction::whereNotNull("date_approved")
-            ->whereDate("date_needed", ">", $date_today)
-            ->whereNotNull("date_approved")
-            ->get()
-            ->count();
+     
 
         $count = [
-            "all" => $all,
+          
             "today" => $today,
-            "pending" => $pending,
+          
         ];
 
         return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
@@ -146,14 +142,7 @@ class ReportController extends Controller
 
         $requestor_id = Auth()->id();
 
-        $all = Transaction::withTrashed()
-            ->where("requestor_id", $requestor_id)
-            ->get()
-            ->count();
-        $pending = Transaction::whereNull("date_approved")
-            ->where("requestor_id", $requestor_id)
-            ->get()
-            ->count();
+      
         $approve = Transaction::whereNotNull("date_approved")
             ->where("requestor_id", $requestor_id)
             ->get()
@@ -165,8 +154,6 @@ class ReportController extends Controller
             ->count();
 
         $count = [
-            "all" => $all,
-            "pending" => $pending,
             "approve" => $approve,
             "disapprove" => $disapprove,
         ];

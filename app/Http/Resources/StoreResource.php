@@ -39,7 +39,7 @@ class StoreResource extends JsonResource
             "mobile_no" => $this->mobile_no,
             "updated_at" => $this->updated_at,
 
-            "tag_store" => TagAccountResource::collection($this->tag_store),
+            "scope_order" => TagAccountResource::collection($this->scope_order),
         ];
     }
 }

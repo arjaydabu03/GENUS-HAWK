@@ -29,7 +29,7 @@ class StoreController extends Controller
         $status = $request->status;
         $search = $request->search;
 
-        $user_store = Store::with("tag_store")
+        $user_store = Store::with("scope_order")
             ->when($status === "inactive", function ($query) {
                 $query->onlyTrashed();
             })
@@ -78,7 +78,7 @@ class StoreController extends Controller
         ]);
         $user_store->save();
 
-        $store_order = $request["tag_store"];
+        $store_order = $request["scope_order"];
 
         foreach ($store_order as $key => $value) {
             TagStoreLocation::create([
@@ -97,7 +97,7 @@ class StoreController extends Controller
     {
         $user = Store::find($id);
 
-        $tag_store = $request->tag_store;
+        $tag_store = $request->scope_order;
 
         $not_found = Store::where("id", $id)->get();
         if ($not_found->isEmpty()) {

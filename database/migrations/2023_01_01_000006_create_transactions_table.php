@@ -18,9 +18,10 @@ return new class extends Migration {
             $table->timestamp("date_ordered")->useCurrent();
             $table->timestamp("date_needed")->nullable();
             $table->timestamp("date_approved")->nullable();
+            $table->timestamp("date_served")->nullable();
+            $table->string("order_type")->nullable();
 
-            $table->string("cip_no")->nullable();
-            $table->string("helpdesk_no")->nullable();
+            $table->string("hri_customer")->nullable();
 
             $table->integer("company_id");
             $table->string("company_code");
@@ -38,11 +39,21 @@ return new class extends Migration {
             $table->string("customer_code");
             $table->string("customer_name");
 
+            $table->unsignedBigInteger("charge_company_id")->index();
+            $table
+                ->foreign("charge_company_id")
+                ->references("sync_id")
+                ->on("company");
+
+            $table->string("charge_company_code");
+            $table->string("charge_company_name");
+
             $table->unsignedBigInteger("charge_department_id")->index();
             $table
                 ->foreign("charge_department_id")
                 ->references("sync_id")
                 ->on("department");
+
             $table->string("charge_department_code");
             $table->string("charge_department_name");
 
@@ -51,10 +62,12 @@ return new class extends Migration {
                 ->foreign("charge_location_id")
                 ->references("sync_id")
                 ->on("location");
+
             $table->string("charge_location_code");
             $table->string("charge_location_name");
 
             $table->string("rush")->nullable();
+            $table->string("reason")->nullable();
 
             $table->unsignedInteger("requestor_id")->index();
             $table

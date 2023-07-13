@@ -20,7 +20,10 @@ class Transaction extends Model
         "date_needed",
         "date_approved",
         "date_ordered",
+        "date_served",
         "reason",
+        "order_type",
+        "hri_customer",
 
         "company_id",
         "company_code",
@@ -37,6 +40,10 @@ class Transaction extends Model
         "customer_id",
         "customer_code",
         "customer_name",
+
+        "charge_company_id",
+        "charge_company_code",
+        "charge_company_name",
 
         "charge_department_id",
         "charge_department_code",

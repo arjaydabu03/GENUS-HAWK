@@ -12,14 +12,13 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create("charge", function (Blueprint $table) {
+        Schema::create("hri", function (Blueprint $table) {
             $table->increments("id");
-            $table->bigInteger("sync_id")->unique();
-            $table->string("code");
+            $table->string("code")->unique();
             $table->string("name");
 
-            $table->softDeletes();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
@@ -30,6 +29,6 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists("charge");
+        Schema::dropIfExists("hri");
     }
 };

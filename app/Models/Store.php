@@ -28,13 +28,8 @@ class Store extends Model
         "company",
     ];
 
-    function tag_store()
-    {
-        return $this->hasMany(TagStoreLocation::class, "account_id", "id");
-    }
-
     function scope_order()
     {
-        return $this->hasMany(TagAccountOrder::class, "account_id", "id");
+        return $this->hasMany(TagStoreLocation::class, "account_id", "id");
     }
 }

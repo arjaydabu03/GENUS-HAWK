@@ -42,7 +42,7 @@ class UpdateRequest extends FormRequest
             "company.id" => "required",
             "company.code" => "required",
             "company.name" => "required",
-            "tag_store" => ["required"],
+            "scope_order" => ["required"],
             "mobile_no" => [
                 "required",
                 "regex:[63]",
@@ -57,7 +57,7 @@ class UpdateRequest extends FormRequest
     public function attributes()
     {
         return [
-            "tag_store" => "tag store for ordering",
+            "scope_order" => "tag store for ordering",
         ];
     }
 

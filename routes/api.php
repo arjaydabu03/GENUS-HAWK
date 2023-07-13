@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\CutoffController;
 use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\LocationController;
+use App\Http\Controllers\Api\HriController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -93,6 +94,9 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::apiResource("company", CompanyController::class);
     Route::apiResource("department", DepartmentController::class);
     Route::apiResource("location", LocationController::class);
+    Route::apiResource("hri", HriController::class);
+    Route::post("hri/validate", [HriController::class, "validate_hri_code"]);
+    Route::patch("hri_archive/{id}", [HriController::class, "destroy"]);
 });
 
 Route::post("login", [UserController::class, "login"]);

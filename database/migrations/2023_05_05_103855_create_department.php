@@ -14,7 +14,7 @@ return new class extends Migration {
     {
         Schema::create("department", function (Blueprint $table) {
             $table->increments("id");
-            $table->bigInteger("sync_id")->unique();
+            $table->unsignedBigInteger("sync_id")->unique();
             $table->string("code");
             $table->string("name");
 
