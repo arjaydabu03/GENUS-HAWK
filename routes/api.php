@@ -18,6 +18,7 @@ use App\Http\Controllers\Api\CompanyController;
 use App\Http\Controllers\Api\DepartmentController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\HriController;
+use App\Http\Controllers\Api\KeywordController;
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -94,13 +95,14 @@ Route::group(["middleware" => ["auth:sanctum"]], function () {
     Route::apiResource("company", CompanyController::class);
     Route::apiResource("department", DepartmentController::class);
     Route::apiResource("location", LocationController::class);
-    Route::apiResource("hri", HriController::class);
-    Route::post("hri/validate", [HriController::class, "validate_hri_code"]);
-    Route::patch("hri_archive/{id}", [HriController::class, "destroy"]);
+
+    Route::apiResource("keyword", KeywordController::class);
+    Route::post("keyword/validate", [KeywordController::class, "validate_keyword_code"]);
+    Route::patch("keyword_archive/{id}", [KeywordController::class, "destroy"]);
 });
 
 Route::post("login", [UserController::class, "login"]);
-Route::post("sms_order", [OrderController::class, "sms_order"]);
+Route::post("sms_order_hawk", [OrderController::class, "sms_order_hawk"]);
 Route::post("sms_cancel", [OrderController::class, "sms_cancel"]);
 // Route::get("reports", [ReportController::class, "view"]);
 // Route::get("users", [UserController::class, "index"]);

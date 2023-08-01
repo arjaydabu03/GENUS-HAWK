@@ -17,7 +17,6 @@ class Order extends Model
         "transaction_id",
         "requestor_id",
 
-        "order_no",
         "customer_code",
 
         "material_id",

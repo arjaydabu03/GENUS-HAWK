@@ -27,7 +27,9 @@ class StoreRequest extends FormRequest
             "code" => [
                 "required",
                 "string",
-                $this->route()->hri ? "unique:hri,code," . $this->route()->hri : "unique:hri,code",
+                $this->route()->keyword
+                    ? "unique:keyword,code," . $this->route()->keyword
+                    : "unique:keyword,code",
             ],
             "name" => ["required", "string", "required"],
         ];

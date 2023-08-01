@@ -17,10 +17,10 @@ class TransactionResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            "order_no" => $this->order_no,
             "rush" => $this->rush,
-            "hri_customer" => $this->hri_customer,
+
             "reason" => $this->reason,
+            "remarks" => $this->remarks,
 
             "dates" => [
                 "date_ordered" => $this->date_ordered,
@@ -28,6 +28,12 @@ class TransactionResource extends JsonResource
                 "date_approved" => $this->date_approved,
                 "date_served" => $this->date_served,
                 "date_disapproved" => $this->deleted_at,
+            ],
+
+            "keyword" => [
+                "id" => $this->keyword_id,
+                "code" => $this->keyword_code,
+                "name" => $this->keyword_name,
             ],
 
             "company" => [

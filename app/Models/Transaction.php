@@ -14,16 +14,18 @@ class Transaction extends Model
     protected $hidden = ["created_at"];
 
     protected $fillable = [
-        "order_no",
-        "cip_no",
-        "helpdesk_no",
+        // "order_no",
         "date_needed",
         "date_approved",
         "date_ordered",
         "date_served",
         "reason",
         "order_type",
-        "hri_customer",
+        "remarks",
+
+        "keyword_id",
+        "keyword_code",
+        "keyword_name",
 
         "company_id",
         "company_code",

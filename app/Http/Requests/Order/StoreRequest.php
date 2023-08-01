@@ -25,23 +25,37 @@ class StoreRequest extends FormRequest
      */
     public function rules()
     {
-        $order_no = $this->input("order_no");
+        $quantity = $this->input("quantity");
+        $quantity = $this->input("quantity");
         $customer_code = $this->input("customer.code");
 
         $requestor_id = $this->user()->id;
 
         return [
-            "order_no" => [
+            // "order_no" => [
+            //     "required",
+            //     Rule::unique("transactions", "order_no")
+            //         ->where("requestor_id", $requestor_id)
+            //         ->where(function ($query) {
+            //             return $query->whereDate("date_ordered", date("Y-m-d"));
+            //         })
+            //         ->whereNull("deleted_at"),
+            // ],
+            "date_needed" => [
                 "required",
-                Rule::unique("transactions", "order_no")
+                Rule::unique("transactions", "date_needed")
                     ->where("requestor_id", $requestor_id)
                     ->where(function ($query) {
                         return $query->whereDate("date_ordered", date("Y-m-d"));
                     })
                     ->whereNull("deleted_at"),
             ],
-            "date_needed" => "required",
             "rush" => "nullable",
+            "reason" => "nullable",
+
+            "keyword.id" => "required",
+            "keyword.code" => "required",
+            "keyword.name" => "required",
 
             "company.id" => "required",
             "company.code" => "required",
@@ -61,7 +75,7 @@ class StoreRequest extends FormRequest
             "customer.id" => "required",
             "customer.code" => "required",
             "customer.name" => "required",
-            
+
             "charge_company.id" => "required",
             "charge_company.code" => "required",
             "charge_company.name" => "required",
@@ -80,11 +94,11 @@ class StoreRequest extends FormRequest
                 "exists:materials,code,deleted_at,NULL",
                 Rule::unique("order", "material_code")->where(function ($query) use (
                     $customer_code,
-                    $order_no,
+                    $quantity,
                     $requestor_id
                 ) {
                     return $query
-                        ->where("order_no", $order_no)
+                        ->where("quantity", $quantity)
                         ->where("customer_code", $customer_code)
                         ->where("requestor_id", $requestor_id)
                         ->where(function ($query) {
@@ -102,6 +116,15 @@ class StoreRequest extends FormRequest
             "order.*.uom.code" => "required",
 
             "order.*.quantity" => "required",
+            // "order.*.quantity" => [
+            //     "required",
+            //     Rule::unique("order", "quantity")
+            //         ->where("requestor_id", $requestor_id)
+            //         ->where(function ($query) {
+            //             return $query->whereDate("date_needed", date("Y-m-d"));
+            //         })
+            //         ->whereNull("deleted_at"),
+            // ],
             "order.*.remarks" => "nullable",
         ];
     }
@@ -109,9 +132,9 @@ class StoreRequest extends FormRequest
     public function attributes()
     {
         return [
-            "order_no" => "order no.",
             "order.*.material.code" => "material",
             "order.*.material.id" => "Item",
+            "order.*.quantity" => "quantity",
         ];
     }
 
@@ -120,6 +143,7 @@ class StoreRequest extends FormRequest
         return [
             "order.*.material.code.unique" => "This :attribute has already been ordered.",
             "order.*.material.id.distinct" => "This :attribute has already been ordered.",
+            "order.*.quantity" => "This :attribute has already been ordered for today.",
         ];
     }
 

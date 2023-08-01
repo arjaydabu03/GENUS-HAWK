@@ -4,16 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-
-use App\Models\HRI;
+use App\Models\Keyword;
 use App\Response\Status;
 use App\Functions\GlobalFunction;
-
 use App\Http\Requests\HRI\DisplayRequest;
 use App\Http\Requests\HRI\StoreRequest;
 use App\Http\Requests\HRI\CodeRequest;
 
-class HriController extends Controller
+class KeywordController extends Controller
 {
     public function index(DisplayRequest $request)
     {
@@ -21,7 +19,7 @@ class HriController extends Controller
         $search = $request->search;
         $paginate = isset($request->paginate) ? $request->paginate : 1;
 
-        $hri = HRI::when($status === "inactive", function ($query) {
+        $keyword = Keyword::when($status === "inactive", function ($query) {
             $query->onlyTrashed();
         })->when($search, function ($query) use ($search) {
             $query
@@ -29,69 +27,69 @@ class HriController extends Controller
                 ->orWhere("description", "like", "%" . $search . "%");
         });
 
-        $hri = $paginate
-            ? $hri->orderByDesc("updated_at")->paginate($request->rows)
-            : $hri->orderByDesc("updated_at")->get();
+        $keyword = $paginate
+            ? $keyword->orderByDesc("updated_at")->paginate($request->rows)
+            : $keyword->orderByDesc("updated_at")->get();
 
-        $is_empty = $hri->isEmpty();
+        $is_empty = $keyword->isEmpty();
 
         if ($is_empty) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        return GlobalFunction::response_function(Status::HRI_DISPLAY, $hri);
+        return GlobalFunction::response_function(Status::KEYWORD_DISPLAY, $keyword);
     }
 
     public function store(StoreRequest $request)
     {
-        $hri = HRI::create([
+        $keyword = Keyword::create([
             "code" => $request["code"],
             "name" => $request["name"],
         ]);
-        return GlobalFunction::save(Status::HRI_SAVE, $hri);
+        return GlobalFunction::save(Status::KEYWORD_SAVE, $keyword);
     }
     public function update(StoreRequest $request, $id)
     {
-        $hri = HRI::find($id);
+        $keyword = Keyword::find($id);
 
-        $not_found = HRI::where("id", $id)->get();
+        $not_found = Keyword::where("id", $id)->get();
 
         if ($not_found->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        $hri->update([
+        $keyword->update([
             "code" => $request["code"],
             "name" => $request["name"],
         ]);
-        return GlobalFunction::response_function(Status::HRI_UPDATE, $hri);
+        return GlobalFunction::response_function(Status::KEYWORD_UPDATE, $keyword);
     }
     public function destroy($id)
     {
-        $hri = HRI::where("id", $id)
+        $keyword = Keyword::where("id", $id)
             ->withTrashed()
             ->get();
 
-        if ($hri->isEmpty()) {
+        if ($keyword->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
 
-        $hri = HRI::withTrashed()->find($id);
-        $is_active = HRI::withTrashed()
+        $keyword = Keyword::withTrashed()->find($id);
+        $is_active = Keyword::withTrashed()
             ->where("id", $id)
             ->first();
         if (!$is_active) {
             return $is_active;
         } elseif (!$is_active->deleted_at) {
-            $hri->delete();
+            $keyword->delete();
             $message = Status::ARCHIVE_STATUS;
         } else {
-            $hri->restore();
+            $keyword->restore();
             $message = Status::RESTORE_STATUS;
         }
-        return GlobalFunction::response_function($message, $hri);
+        return GlobalFunction::response_function($message, $keyword);
     }
-    public function validate_hri_code(CodeRequest $request)
+    public function validate_keyword_code(CodeRequest $request)
     {
         return GlobalFunction::response_function(Status::SINGLE_VALIDATION);
     }

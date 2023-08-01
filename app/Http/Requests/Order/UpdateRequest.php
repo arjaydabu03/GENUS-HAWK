@@ -28,20 +28,23 @@ class UpdateRequest extends FormRequest
      */
     public function rules()
     {
-        $order_no = $this->input("order_no");
+        $quantity = $this->input("quantity");
         $customer_code = $this->input("customer.code");
 
         $requestor_id = $this->user()->id;
         $requestor_role = $this->user()->role_id;
 
         return [
-            "order_no" => [
+            "date_needed" => [
                 "required",
-                Rule::unique("transactions", "order_no")
+                Rule::unique("transactions", "date_needed")
                     ->ignore($this->route("order"))
-                    ->when($requestor_role == 3, function ($query) use ($requestor_id) {
-                        return $query->where("requestor_id", $requestor_id);
-                    })
+                    ->when(
+                        $requestor_role == 3 || $requestor_role == 5 || $requestor_role == 1,
+                        function ($query) use ($requestor_id) {
+                            return $query->where("requestor_id", $requestor_id);
+                        }
+                    )
                     // ->when($requestor_role == 2, function ($query) use ($requestor_id) {
                     //     return $query->where("requestor_id", $requestor_id);
                     // })
@@ -50,7 +53,6 @@ class UpdateRequest extends FormRequest
                     })
                     ->whereNull("deleted_at"),
             ],
-            "date_needed" => "required",
             "customer.id" => "required",
             "customer.code" => "required",
             "customer.name" => "required",
@@ -73,11 +75,11 @@ class UpdateRequest extends FormRequest
                 "exists:materials,code,deleted_at,NULL",
                 Rule::unique("order", "material_code")->where(function ($query) use (
                     $customer_code,
-                    $order_no,
+                    $quantity,
                     $requestor_id
                 ) {
                     return $query
-                        ->where("order_no", $order_no)
+                        ->where("quantity", $quantity)
                         ->where("customer_code", $customer_code)
                         ->where("requestor_id", $requestor_id)
                         ->where(function ($query) {

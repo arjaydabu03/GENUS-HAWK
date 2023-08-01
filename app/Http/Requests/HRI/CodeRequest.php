@@ -26,7 +26,9 @@ class CodeRequest extends FormRequest
         return [
             "code" => [
                 "required",
-                $this->get("id") ? "unique:hri,code," . $this->get("id") : "unique:hri,code",
+                $this->get("id")
+                    ? "unique:keyword,code," . $this->get("id")
+                    : "unique:keyword,code",
             ],
         ];
     }

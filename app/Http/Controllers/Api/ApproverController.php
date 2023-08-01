@@ -47,7 +47,6 @@ class ApproverController extends Controller
             ->where(function ($query) use ($search) {
                 $query
                     ->where("date_ordered", "like", "%" . $search . "%")
-                    ->orWhere("order_no", "like", "%" . $search . "%")
                     ->orWhere("date_needed", "like", "%" . $search . "%")
                     ->orWhere("date_approved", "like", "%" . $search . "%")
                     ->orWhere("company_name", "like", "%" . $search . "%")
