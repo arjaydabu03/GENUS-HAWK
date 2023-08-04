@@ -225,6 +225,9 @@ class OrderController extends Controller
                 "uom_id" => $request["order"][$key]["uom"]["id"],
                 "uom_code" => $request["order"][$key]["uom"]["code"],
 
+                "uom_type_id" => $request["order"][$key]["uom_type"]["id"],
+                "uom_type_code" => $request["order"][$key]["uom_type"]["code"],
+
                 "category_id" => $request["order"][$key]["category"]["id"],
                 "category_name" => $request["order"][$key]["category"]["name"],
 
@@ -247,10 +250,6 @@ class OrderController extends Controller
             ->where("id", $id)
             ->whereNull("date_approved")
             ->get();
-
-        if ($invalid->isEmpty() && $user->role_id !== 5) {
-            return GlobalFunction::invalid(Status::INVALID_UPDATE);
-        }
 
         $invalid_update = $transaction->whereNull("date_served");
         if (!$invalid_update && $user->role_id == 2) {
@@ -319,6 +318,9 @@ class OrderController extends Controller
 
                     "uom_id" => $value["uom"]["id"],
                     "uom_code" => $value["uom"]["code"],
+
+                    "uom_type_id" => $value["uom_type"]["id"],
+                    "uom_type_code" => $value["uom_type"]["code"],
 
                     "quantity" => $value["quantity"],
                     "remarks" => $value["remarks"],

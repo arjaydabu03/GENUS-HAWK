@@ -29,6 +29,9 @@ class Order extends Model
         "uom_id",
         "uom_code",
 
+        "uom_type_id",
+        "uom_type_code",
+
         "quantity",
         "remarks",
     ];

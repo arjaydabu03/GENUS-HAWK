@@ -41,6 +41,9 @@ return new class extends Migration {
             $table->integer("uom_id");
             $table->string("uom_code");
 
+            $table->integer("uom_type_id");
+            $table->string("uom_type_code");
+
             $table->double("quantity");
             $table->string("remarks")->nullable();
 

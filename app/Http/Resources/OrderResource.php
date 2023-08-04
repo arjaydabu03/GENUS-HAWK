@@ -16,7 +16,7 @@ class OrderResource extends JsonResource
     {
         return [
             "id" => $this->id,
-            
+
             "material" => [
                 "id" => $this->material_id,
                 "code" => $this->material_code,
@@ -30,6 +30,11 @@ class OrderResource extends JsonResource
             "uom" => [
                 "id" => $this->uom_id,
                 "code" => $this->uom_code,
+            ],
+
+            "uom_type" => [
+                "id" => $this->uom_type_id,
+                "code" => $this->uom_type_code,
             ],
 
             "quantity" => $this->quantity,
