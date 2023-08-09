@@ -117,17 +117,13 @@ class ReportController extends Controller
 
             ->format("Y-m-d");
 
-       
         $today = Transaction::whereNotNull("date_approved")
             ->whereDate("date_needed", $date_today)
             ->get()
             ->count();
-     
 
         $count = [
-          
             "today" => $today,
-          
         ];
 
         return GlobalFunction::response_function(Status::COUNT_DISPLAY, $count);
@@ -141,7 +137,6 @@ class ReportController extends Controller
 
         $requestor_id = Auth()->id();
 
-      
         $approve = Transaction::whereNotNull("date_approved")
             ->where("requestor_id", $requestor_id)
             ->get()
@@ -197,8 +192,8 @@ class ReportController extends Controller
             ) {
                 $query->whereHas("transaction", function ($query) use ($from, $to) {
                     $query
-                        ->whereDate("date_needed", ">=", $from)
-                        ->whereDate("date_needed", "<=", $to);
+                        ->whereDate("date_ordered", ">=", $from)
+                        ->whereDate("date_ordered", "<=", $to);
                 });
             })
             ->get();
