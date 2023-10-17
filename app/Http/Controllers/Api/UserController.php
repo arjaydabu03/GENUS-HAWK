@@ -17,6 +17,7 @@ use App\Models\User;
 use App\Models\Store;
 use App\Models\TagAccount;
 use App\Models\TagAccountOrder;
+use App\Models\Tagwarehouse;
 use App\Models\Location;
 use App\Models\Role;
 use App\Models\Cutoff;
@@ -43,7 +44,7 @@ class UserController extends Controller
         $rows = $request->rows;
         $paginate = isset($request->paginate) ? $request->paginate : 1;
 
-        $users = User::with("scope_approval", "scope_order", "role")
+        $users = User::with("scope_approval", "scope_order", "role", "warehouse")
             ->when($status === "inactive", function ($query) {
                 $query->onlyTrashed();
             })
@@ -61,6 +62,7 @@ class UserController extends Controller
                     ->orWhere("username", "like", "%" . $search . "%")
                     ->orWhere("role_id", "like", "%" . $search . "%");
             });
+
         $users = $paginate
             ? $users->orderByDesc("updated_at")->paginate($rows)
             : $users->orderByDesc("updated_at")->get();
@@ -102,7 +104,6 @@ class UserController extends Controller
     public function show($id)
     {
         $not_found = User::where("id", $id)->get();
-        //  return $not_found;
         if ($not_found->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
         }
@@ -135,6 +136,7 @@ class UserController extends Controller
             "role_id" => $request["role_id"],
             "mobile_no" => $request["mobile_no"],
             "username" => $request["username"],
+            "warehouse_id" => $request["warehouse_id"],
             "password" => Hash::make($request["username"]),
         ]);
         $user->save();
@@ -169,7 +171,7 @@ class UserController extends Controller
         $cut_off = Cutoff::get();
 
         $user = User::where("username", $request->username)
-            ->with("scope_approval", "scope_order")
+            ->with("scope_approval", "scope_order", "warehouse")
             ->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
@@ -187,7 +189,7 @@ class UserController extends Controller
         $user["cut_off"] = $cut_off;
         $user = new LoginResource($user);
 
-        $cookie = cookie("authcookie", $token);
+        $cookie = cookie("genushawk", $token);
 
         return GlobalFunction::response_function(Status::LOGIN_USER, $user)->withCookie($cookie);
     }
@@ -243,6 +245,7 @@ class UserController extends Controller
 
         $scope_approval = $request->scope_approval;
         $scope_order = $request->scope_order;
+        $scope_warehouse = $request->scope_warehouse;
 
         $not_found = User::where("id", $id)->get();
         if ($not_found->isEmpty()) {
@@ -300,7 +303,30 @@ class UserController extends Controller
                 ]);
             }
         }
+        // SCOPE FOR WAREHOUSE
+        // $newTaggedOrder = collect($scope_warehouse)
+        //     ->pluck("id")
+        //     ->toArray();
+        // $currentTaggedOrder = Tagwarehouse::where("account_id", $id)
+        //     ->get()
+        //     ->pluck("warehouse_id")
+        //     ->toArray();
 
+        // foreach ($currentTaggedOrder as $warehouse) {
+        //     if (!in_array($warehouse, $newTaggedOrder)) {
+        //         Tagwarehouse::where("account_id", $id)
+        //             ->where("warehouse_id", $warehouse)
+        //             ->delete();
+        //     }
+        // }
+        // foreach ($scope_warehouse as $index => $value) {
+        //     if (!in_array($value["warehouse_id"], $currentTaggedOrder)) {
+        //         Tagwarehouse::create([
+        //             "account_id" => $id,
+        //             "warehouse_id" => $value["warehouse_id"],
+        //         ]);
+        //     }
+        // }
         $user->update([
             "account_code" => $request["code"],
             "account_name" => $request["name"],
@@ -319,6 +345,7 @@ class UserController extends Controller
             "company_id" => $request["company"]["id"],
             "company_code" => $request["company"]["code"],
             "company" => $request["company"]["name"],
+            "warehouse_id" => $request["warehouse_id"],
         ]);
 
         $user = new UserResource($user);

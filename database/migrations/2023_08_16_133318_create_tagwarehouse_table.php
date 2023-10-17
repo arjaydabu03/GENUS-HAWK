@@ -12,23 +12,20 @@ return new class extends Migration {
      */
     public function up()
     {
-        Schema::create("materials", function (Blueprint $table) {
+        Schema::create("tagwarehouse", function (Blueprint $table) {
             $table->increments("id");
-            $table->string("code");
-            $table->string("name");
-
-            $table->unsignedInteger("category_id")->index();
+            $table->unsignedInteger("warehouse_id")->index();
             $table
-                ->foreign("category_id")
+                ->foreign("warehouse_id")
                 ->references("id")
-                ->on("categories");
-
-            $table->unsignedInteger("uom_id")->index();
+                ->on("warehouse");
+            $table->unsignedInteger("material_id")->index();
             $table
-                ->foreign("uom_id")
+                ->foreign("material_id")
                 ->references("id")
-                ->on("uom");
-
+                ->on("materials");
+            $table->string("material_code")->nullable();
+            $table->string("material_name")->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
@@ -41,6 +38,6 @@ return new class extends Migration {
      */
     public function down()
     {
-        Schema::dropIfExists("materials");
+        Schema::dropIfExists("tagwarehouse");
     }
 };

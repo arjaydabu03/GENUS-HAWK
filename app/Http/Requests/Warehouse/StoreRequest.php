@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Warehouse;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreRequest extends FormRequest
 {
@@ -24,14 +25,35 @@ class StoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'code'=> [
-                'required',
-                'string',
+            "code" => [
+                "required",
+                "string",
                 $this->route()->warehouse
-                    ? 'unique:warehouse,code,'.$this->route()->warehouse
-                    : 'unique:warehouse,code'
+                    ? "unique:warehouse,code," . $this->route()->warehouse
+                    : "unique:warehouse,code",
             ],
-            'name'=>'required'
+            "name" => "required",
+
+            "material" => [
+                "required",
+                "exists:materials,id,deleted_at,NULL",
+                // Rule::exists("materials")->where(function ($query) {
+                //     return $query->where("code", $this->input("material.*.code"));
+                // }),
+            ],
+        ];
+    }
+    public function attributes()
+    {
+        return [
+            "material.*.id" => "material",
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            "exists" => "This :attribute is not registered",
         ];
     }
 }

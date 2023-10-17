@@ -5,6 +5,7 @@ namespace App\Http\Resources;
 use Illuminate\Http\Resources\Json\JsonResource;
 use App\Http\Resources\RoleResource;
 use App\Http\Resources\TagAccountResource;
+use App\Http\Resources\TagWarehouseResource;
 class UserResource extends JsonResource
 {
     /**
@@ -39,6 +40,11 @@ class UserResource extends JsonResource
                 "name" => $this->location,
             ],
             "username" => $this->username,
+            "warehouse" => [
+                "id" => $this->warehouse->id,
+                "code" => $this->warehouse->code,
+                "name" => $this->warehouse->name,
+            ],
             "role" => new RoleResource($this->role),
             "scope_approval" => TagAccountResource::collection($this->scope_approval),
             "scope_order" => TagAccountResource::collection($this->scope_order),

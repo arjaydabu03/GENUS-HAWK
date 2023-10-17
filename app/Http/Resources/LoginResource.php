@@ -40,6 +40,7 @@ class LoginResource extends JsonResource
             "cut_off" => $this->cut_off,
             "scope_approval" => $this->scope_approval,
             "scope_order" => $this->scope_order,
+            "warehouse" => $this->warehouse_id,
             "username" => $this->username,
             "token" => $this->token,
         ];

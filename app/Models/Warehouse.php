@@ -15,4 +15,9 @@ class Warehouse extends Model
     protected $fillable = ["code", "name"];
 
     protected $hidden = ["created_at"];
+
+    function material()
+    {
+        return $this->belongsToMany(Material::class, "tagwarehouse", "warehouse_id", "material_id");
+    }
 }

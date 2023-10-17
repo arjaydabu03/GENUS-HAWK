@@ -25,9 +25,8 @@ class StoreRequest extends FormRequest
      */
     public function rules()
     {
-        $quantity = $this->input("quantity");
-        $quantity = $this->input("quantity");
-        $customer_code = $this->input("customer.code");
+        // $customer_code = $this->input("customer.code");
+        // $uom_code = $this->input("order.*.uom_type.code");
 
         $requestor_id = $this->user()->id;
 
@@ -43,12 +42,12 @@ class StoreRequest extends FormRequest
             // ],
             "date_needed" => [
                 "required",
-                Rule::unique("transactions", "date_needed")
-                    ->where("requestor_id", $requestor_id)
-                    ->where(function ($query) {
-                        return $query->whereDate("date_ordered", date("Y-m-d"));
-                    })
-                    ->whereNull("deleted_at"),
+                // Rule::unique("transactions", "date_needed")
+                //     ->where("requestor_id", $requestor_id)
+                //     ->where(function ($query) {
+                //         return $query->whereDate("date_ordered", date("Y-m-d"));
+                //     })
+                //     ->whereNull("deleted_at"),
             ],
             "rush" => "nullable",
             "reason" => "nullable",
@@ -92,20 +91,21 @@ class StoreRequest extends FormRequest
             "order.*.material.code" => [
                 "required",
                 "exists:materials,code,deleted_at,NULL",
-                Rule::unique("order", "material_code")->where(function ($query) use (
-                    $customer_code,
-                    $quantity,
-                    $requestor_id
-                ) {
-                    return $query
-                        ->where("quantity", $quantity)
-                        ->where("customer_code", $customer_code)
-                        ->where("requestor_id", $requestor_id)
-                        ->where(function ($query) {
-                            return $query->whereDate("created_at", date("Y-m-d"));
-                        })
-                        ->whereNull("deleted_at");
-                }),
+                "duplicate_item",
+                // Rule::unique("order", "material_code")->where(function ($query) use (
+                //     $customer_code,
+                //     $requestor_id,
+                //     $uom_code
+                // ) {
+                //     return $query
+                //         ->where("customer_code", $customer_code)
+                //         ->where("requestor_id", $requestor_id)
+                //         ->whereIn("uom_type_code", $uom_code)
+                //         ->where(function ($query) {
+                //             return $query->whereDate("created_at", date("Y-m-d"));
+                //         })
+                //         ->whereNull("deleted_at");
+                // }),
             ],
             "order.*.material.name" => "required",
 
@@ -114,6 +114,9 @@ class StoreRequest extends FormRequest
 
             "order.*.uom.id" => ["required", "exists:uom,id,deleted_at,NULL"],
             "order.*.uom.code" => "required",
+
+            "order.*.uom_type.id" => "required",
+            "order.*.uom_type.code" => "required",
 
             "order.*.quantity" => "required",
             // "order.*.quantity" => [
@@ -134,7 +137,6 @@ class StoreRequest extends FormRequest
         return [
             "order.*.material.code" => "material",
             "order.*.material.id" => "Item",
-            "order.*.quantity" => "quantity",
         ];
     }
 
@@ -143,7 +145,7 @@ class StoreRequest extends FormRequest
         return [
             "order.*.material.code.unique" => "This :attribute has already been ordered.",
             "order.*.material.id.distinct" => "This :attribute has already been ordered.",
-            "order.*.quantity" => "This :attribute has already been ordered for today.",
+            "order.*.material.code.duplicate_item" => "This :attribute has already been ordered.",
         ];
     }
 
@@ -152,7 +154,12 @@ class StoreRequest extends FormRequest
         $validator->after(function ($validator) {
             // $validator->errors()->add("custom", $this->user()->id);
             // $validator->errors()->add("custom", $this->route()->id);
-            // $validator->errors()->add("custom", "STOP!");
+
+            // $uom_code = $this->input("order.*.uom_type.code");
+            // $customer_code = $this->input("order.*.uom_type.code");
+
+            // $validator->errors()->add("custom", current($customer_code));
+
             $time_now = Carbon::now()
                 ->timezone("Asia/Manila")
                 ->format("H:i");

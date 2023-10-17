@@ -69,9 +69,11 @@ class Status
 
     // DISPLAY ERRORS
     const NOT_FOUND = "Data not found.";
+    const TAG_USER_WAREHOUSE = "Warehouse still in use.";
     //VALIDATION
     const SINGLE_VALIDATION = "Data has been validated.";
     const INVALID_ACTION = "Invalid action.";
+    const INVALID_MATERIAL = "Invalid action ,Please check the material.";
     const INVALID_UPDATE = "Unable to update this transaction is already approved.";
     const NEW_PASSWORD = "Please change your password.";
     const EXISTS = "Data already exists.";

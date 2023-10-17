@@ -11,6 +11,7 @@ class Transaction extends Model
 {
     use HasFactory, SoftDeletes;
 
+    protected $table = "transactions";
     protected $hidden = ["created_at"];
 
     protected $fillable = [

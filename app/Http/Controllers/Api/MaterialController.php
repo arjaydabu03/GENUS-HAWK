@@ -105,7 +105,6 @@ class MaterialController extends Controller
             "helpdesk_no" => $request["helpdesk_no"],
             "category_id" => $request["category_id"],
             "uom_id" => $request["uom_id"],
-            "warehouse_id" => $request["warehouse_id"],
         ]);
 
         $material = $material->with("category", "uom")->firstWhere("id", $material->id);
@@ -117,6 +116,12 @@ class MaterialController extends Controller
         $material = Material::where("id", $id)
             ->withTrashed()
             ->get();
+
+            // $tagwarehouse = Tagwarehouse::where("warehouse_id", $warehouse_id->id)->exists();
+
+        // if ($tagwarehouse) {
+        //     return "error warehouse has a tag material";
+        // }
 
         if ($material->isEmpty()) {
             return GlobalFunction::not_found(Status::NOT_FOUND);
@@ -152,7 +157,6 @@ class MaterialController extends Controller
             $name = $file_import["name"];
             $uom = $file_import["uom"];
             $category = $file_import["category"];
-            $warehouse = $file_import["warehouse"];
 
             $category_id = Category::where("name", $category)->first();
 
@@ -165,7 +169,7 @@ class MaterialController extends Controller
                 "name" => $name,
                 "category_id" => $category_id->id,
                 "uom_id" => $uom_id->id,
-                "warehouse_id" => $warehouse_id->id,
+               
             ]);
         }
         return GlobalFunction::save(

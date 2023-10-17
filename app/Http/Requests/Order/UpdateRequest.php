@@ -37,21 +37,22 @@ class UpdateRequest extends FormRequest
         return [
             "date_needed" => [
                 "required",
-                Rule::unique("transactions", "date_needed")
-                    ->ignore($this->route("order"))
-                    ->when(
-                        $requestor_role == 3 || $requestor_role == 5 || $requestor_role == 1,
-                        function ($query) use ($requestor_id) {
-                            return $query->where("requestor_id", $requestor_id);
-                        }
-                    )
-                    // ->when($requestor_role == 2, function ($query) use ($requestor_id) {
-                    //     return $query->where("requestor_id", $requestor_id);
-                    // })
-                    ->where(function ($query) {
-                        return $query->whereDate("date_ordered", date("Y-m-d"));
-                    })
-                    ->whereNull("deleted_at"),
+
+                // Rule::unique("transactions", "date_needed")
+                //     ->ignore($this->route("order"))
+                //     ->when(
+                //         $requestor_role == 3 || $requestor_role == 5 || $requestor_role == 1,
+                //         function ($query) use ($requestor_id) {
+                //             return $query->where("requestor_id", $requestor_id);
+                //         }
+                //     )
+                //     // ->when($requestor_role == 2, function ($query) use ($requestor_id) {
+                //     //     return $query->where("requestor_id", $requestor_id);
+                //     // })
+                //     ->where(function ($query) {
+                //         return $query->whereDate("date_ordered", date("Y-m-d"));
+                //     })
+                //     ->whereNull("deleted_at"),
             ],
             "customer.id" => "required",
             "customer.code" => "required",
@@ -73,23 +74,23 @@ class UpdateRequest extends FormRequest
             "order.*.material.code" => [
                 "required",
                 "exists:materials,code,deleted_at,NULL",
-                Rule::unique("order", "material_code")->where(function ($query) use (
-                    $customer_code,
-                    $quantity,
-                    $requestor_id
-                ) {
-                    return $query
-                        ->where("quantity", $quantity)
-                        ->where("customer_code", $customer_code)
-                        ->where("requestor_id", $requestor_id)
-                        ->where(function ($query) {
-                            return $query->whereDate("created_at", date("Y-m-d"));
-                        })
-                        ->whereNot(function ($query) {
-                            return $query->whereIn("id", $this->input("order.*.id"));
-                        })
-                        ->whereNull("deleted_at");
-                }),
+                "duplicate_item:" . $this->route("order"),
+
+                // Rule::unique("order", "material_code")->where(function ($query) use (
+                //     $customer_code,
+                //     $requestor_id
+                // ) {
+                //     return $query
+                //         ->where("customer_code", $customer_code)
+                //         ->where("requestor_id", $requestor_id)
+                //         ->where(function ($query) {
+                //             return $query->whereDate("created_at", date("Y-m-d"));
+                //         })
+                //         ->whereNot(function ($query) {
+                //             return $query->whereIn("id", $this->input("order.*.id"));
+                //         })
+                //         ->whereNull("deleted_at");
+                // }),
             ],
             "order.*.material.name" => "required",
 
@@ -117,6 +118,7 @@ class UpdateRequest extends FormRequest
         return [
             "order.*.material.code.unique" => "This :attribute has already been ordered.",
             "order.*.material.id.distinct" => "This :attribute has already been ordered.",
+            "order.*.material.code.duplicate_item" => "This :attribute has already been ordered.",
         ];
     }
 

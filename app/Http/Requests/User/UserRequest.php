@@ -63,6 +63,7 @@ class UserRequest extends FormRequest
                     ? "unique:users,username," . $this->route()->id
                     : "unique:users,username",
             ],
+            "warehouse_id" => "required|exists:warehouse,id,deleted_at,NULL",
         ];
     }
 
@@ -71,6 +72,8 @@ class UserRequest extends FormRequest
         return [
             "scope_approval" => "scope for approval",
             "scope_order" => "scope for ordering",
+            "role" => "Role",
+            "warehouse_id" => "Warehouse",
         ];
     }
 
@@ -78,7 +81,7 @@ class UserRequest extends FormRequest
     {
         return [
             "required_if" => "The :attribute field is required.",
-            "exists" => "Role is not Registered",
+            "exists" => ":attribute is not registered",
         ];
     }
 

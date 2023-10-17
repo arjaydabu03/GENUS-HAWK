@@ -56,7 +56,7 @@ class LocationController extends Controller
             $name = $location["name"];
             $deleted_at = $location["deleted_at"];
 
-            $locations = Location::updateOrCreate(
+            $locations = Location::withTrashed()->updateOrCreate(
                 [
                     "sync_id" => $sync_id,
                 ],

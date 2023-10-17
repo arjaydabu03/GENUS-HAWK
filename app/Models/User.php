@@ -37,6 +37,7 @@ class User extends Authenticatable
         "company",
 
         "role_id",
+        "warehouse_id",
         "username",
         "password",
     ];
@@ -51,6 +52,10 @@ class User extends Authenticatable
     function scope_order()
     {
         return $this->hasMany(TagAccountOrder::class, "account_id", "id");
+    }
+    function warehouse()
+    {
+        return $this->belongsTo(Warehouse::class, "warehouse_id", "id");
     }
 
     function role()
